@@ -56,6 +56,25 @@ describe("Yukleme", function()
 		expect(Screen.shouldClose("failed", true, 1e6, Loading.MinSeconds)).toBe(false)
 	end)
 
+	it("K-012: dolgu dolmaz; en soldan baslar, saga gider, geri doner", function()
+		local cycle = Loading.BarCycleSeconds
+		local function near(a, b)
+			expect(math.abs(a - b) < 1e-9).toBe(true)
+		end
+		near(Screen.fillPosition(0, cycle, 0.3), 0)
+		near(Screen.fillPosition(cycle, cycle, 0.3), 0.7)
+		near(Screen.fillPosition(cycle * 0.5, cycle, 0.3), 0.35)
+		near(Screen.fillPosition(cycle * 1.5, cycle, 0.3), 0.35)
+		near(Screen.fillPosition(cycle * 2, cycle, 0.3), 0)
+		near(Screen.fillPosition(0, cycle, -0.3), 0.3)
+		near(Screen.fillPosition(cycle, cycle, -0.3), 1)
+	end)
+
+	it("K-013: yukleme basarisizsa dolgu durur", function()
+		expect(Screen.fillMoves("loading")).toBe(true)
+		expect(Screen.fillMoves("failed")).toBe(false)
+	end)
+
 	it("T-025: yeniden dene dugmesi ve durum yazisi yok; profil acilamazsa oyuncu atilmaz, sonuc istemciye gider", function()
 		local marks = {}
 		for _, entry in Binder.expected() do

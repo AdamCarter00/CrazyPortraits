@@ -10,7 +10,12 @@ local LoadingScreen = {}
 LoadingScreen.__index = LoadingScreen
 
 function LoadingScreen.new(refs)
-	local self = setmetatable({ refs = refs, status = "loading", startedAt = os.clock() }, LoadingScreen)
+	local self = setmetatable({
+		refs = refs,
+		status = "loading",
+		startedAt = os.clock(),
+		fillSize = refs.yukleme_cubuk_dolgu.Size.X.Scale,
+	}, LoadingScreen)
 	refs.yukleme_ekran.Enabled = true
 	self:step()
 	self.connection = RunService.Heartbeat:Connect(function()
@@ -30,6 +35,11 @@ function LoadingScreen:step()
 	local elapsed = os.clock() - self.startedAt
 	refs.yukleme_ipucu.Text = Terms.LoadingTips[Screen.tipIndex(elapsed, #Terms.LoadingTips, Loading.TipSeconds)]
 	refs.yukleme_cubuk_yazi.Text = Screen.barText(self.status, Terms)
+	if Screen.fillMoves(self.status) then
+		local fill = refs.yukleme_cubuk_dolgu
+		local x = Screen.fillPosition(elapsed, Loading.BarCycleSeconds, self.fillSize)
+		fill.Position = UDim2.new(x, fill.Position.X.Offset, fill.Position.Y.Scale, fill.Position.Y.Offset)
+	end
 	if Screen.shouldClose(self.status, game:IsLoaded(), elapsed, Loading.MinSeconds) then
 		self.connection:Disconnect()
 		refs.yukleme_ekran.Enabled = false

@@ -54,6 +54,7 @@ Logo ve süs emojileri işaretsizdir; kod onlara dokunmaz.
 | `yukleme_ekran` | ScreenGui | Yükleme ekranı; sabit bekleme yok: profil yüklenip oyun hazır olunca ve en az `Config.Loading.MinSeconds` geçince kod kapatır. Başarısızsa açık kalır | 8 |
 | `yukleme_ipucu` | TextLabel | Çubuğun üstünde dönen ipucu; metin `Terms.LoadingTips`, `Config.Loading.TipSeconds`'ta bir değişir. Studio'daki adı şimdilik `TextLabel` | 8 |
 | `yukleme_cubuk_yazi` | TextLabel | Çubuğun yazısı: `Terms.Loading`; yükleme başarısızsa `Terms.DataLoadFailed`. Studio'daki adı `Loading_Yazi` | 8 |
+| `yukleme_cubuk_dolgu` | Frame | Çubuğun dolgusu, çubuğun içinde; dolmaz, sol uçtan sağ uca gidip gelir (K-012), yükleme başarısızsa durur (K-013). Kod yalnız `Position.X.Scale`'i yazar; genişliği Studio'dan okur. Studio'daki adı `Fill` | 8 |
 
 ## Lobi (T-020: yalnız Invite)
 

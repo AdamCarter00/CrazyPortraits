@@ -31,6 +31,7 @@ return table.freeze({
 		table.freeze({ mark = "yukleme_ekran", class = "ScreenGui", group = "yukleme" }),
 		table.freeze({ mark = "yukleme_ipucu", class = "TextLabel", group = "yukleme" }),
 		table.freeze({ mark = "yukleme_cubuk_yazi", class = "TextLabel", group = "yukleme" }),
+		table.freeze({ mark = "yukleme_cubuk_dolgu", class = "Frame", group = "yukleme" }),
 
 		table.freeze({ mark = "lobi_ekran", class = "ScreenGui", group = "lobi" }),
 		table.freeze({ mark = "lobi_davet", class = "GuiButton", group = "lobi" }),
