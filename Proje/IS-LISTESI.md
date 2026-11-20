@@ -6,12 +6,12 @@ Sıra önem sırasıdır. Önerilen gün yanında. Parantezdeki numaralar sade l
 
 > Kopya, 2026-11-20: PORTFOY `kayit/kanitlar/F-015-V0/IS-LISTESI.md`'den alındı. İş sırası bundan sonra burada tutulur.
 
-## 0 · Kurulum (Gün 1 başı)
+## 0 · Kurulum (Gün 1 başı) — BİTTİ 2026-11-20
 - Depo + Rojo; place aynı (Crazy Portraits, placeId 72378550860176).
 - Snapshot'tan olduğu gibi taşınacaklar: `StrokeCodec`, `FloodFill`, `StrokeValidator`, `DrawRenderer`, `PassController`, `ProfileStore`, `PlayerDataService`, `BanService`, `AdminService` + admin paneli. `AnalyticsService` snapshot'ta yok, Studio'da.
 - **Neden:** bunlar sağlam ve test edilebilir; yeniden yazmak gün yer.
 
-## 1 · Tur yönetimi baştan (Gün 1–2) — en önemli
+## 1 · Tur yönetimi baştan (Gün 1–2) — en önemli — SUNUCU TARAFI BİTTİ 2026-11-20 (istemci ekranları 4-5. işlerde)
 Saf durum makinesi + zamanlayıcı + yan etki katmanı; Lune testleriyle.
 - Herkes teslim edince tur biter; üst sınır 140 sn (2).
 - Takılan ekranlar: "Round starting in 0s", "Round over"; oyuncu sayısı düşünce lobi durumu yeniden yayınlanır (3).
@@ -21,7 +21,7 @@ Saf durum makinesi + zamanlayıcı + yan etki katmanı; Lune testleriyle.
 - Tur sonu sonuçları herkese yayınlanır (podyum için veri) (11).
 - **Neden:** hataların çoğu bu tek modülden çıkıyor; reveal, oy ve ölçüm işleri buna dayanıyor. İlk gösterim bugün ~2 dk sonra geliyor.
 
-## 2 · Mobilde joystick kaybı (Gün 2) (1)
+## 2 · Mobilde joystick kaybı (Gün 2) (1) — KOD HAZIR 2026-11-20 (`client/GuiVisibility`); çizim istemcisi (3) bunu çağıracak, telefonda doğrulama 10. işte
 - Çizimde yalnız oyunun kendi GUI'leri gizlenir; Roblox `TouchGui` ellenmez.
 - **Neden:** mobil oyuncu ilk turdan sonra lobide yürüyemiyor; trafiğin çoğu mobil. İş küçük.
 
