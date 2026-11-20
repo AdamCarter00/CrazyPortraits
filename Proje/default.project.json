@@ -1,0 +1,21 @@
+{
+  "name": "Crazy Portraits 2",
+  "tree": {
+    "$className": "DataModel",
+    "ReplicatedStorage": {
+      "Shared": { "$path": "src/shared" }
+    },
+    "ServerScriptService": {
+      "Server": { "$path": "src/server" },
+      "Main": { "$path": "src/places/main/Main.server.luau" }
+    },
+    "StarterPlayer": {
+      "StarterPlayerScripts": {
+        "Client": { "$path": "src/client" },
+        "Main": { "$path": "src/places/main/Main.client.luau" }
+      }
+    },
+    "Workspace": { "$properties": { "FilteringEnabled": true } },
+    "SoundService": { "$properties": { "RespectFilteringEnabled": true } }
+  }
+}

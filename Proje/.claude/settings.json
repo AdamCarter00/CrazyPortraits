@@ -1,0 +1,32 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(lune run tools/kasa.luau *)",
+      "Bash(lune run tests/run.luau)",
+      "Bash(lune run tests/run.luau *)"
+    ]
+  },
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "lune run \"${CLAUDE_PROJECT_DIR}/tools/kasa.luau\" degisen"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Read|Edit|Write|MultiEdit|NotebookEdit|Grep|Bash|PowerShell",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "lune run \"${CLAUDE_PROJECT_DIR}/tools/kasa-kanca.luau\""
+          }
+        ]
+      }
+    ]
+  }
+}

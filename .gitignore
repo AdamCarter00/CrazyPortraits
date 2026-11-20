@@ -1,0 +1,20 @@
+# Git koku oyunun butun klasoru: Proje + rapor + Icerikler birlikte yedeklenir.
+
+# Roblox place ve kilit dosyalari
+*.rbxl
+*.rbxlx
+*.rbxl.lock
+*.rbxlx.lock
+Proje/sourcemap.json
+
+# Lune gecici ciktilari
+Proje/.lune-out/
+
+# Claude Code'un yerel ayari (kisisel)
+Proje/.claude/settings.local.json
+
+# Buyuk ham dosyalar: 50 MB ustu video ve kaynak dosyalari depoya girmez (Adam karar verirse acilir)
+*.mp4
+*.mov
+*.psd
+*.blend
