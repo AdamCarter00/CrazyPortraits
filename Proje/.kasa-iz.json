@@ -5,10 +5,13 @@
   "T-008": {"h": "e389e50399cc1ed7", "d": "karar"},
   "T-016": {"h": "a4271aaef0d1ba8d", "d": "karar"},
   "T-017": {"h": "7f01ee12f9b9d4d6", "d": "karar"},
+  "T-018": {"h": "c8631e994cde2b67", "d": "karar"},
   "T-019": {"h": "4ae25cdac57cdab6", "d": "karar"},
   "T-021": {"h": "d8120fd48a73c1c9", "d": "karar"},
   "T-022": {"h": "25c1069505b2eeba", "d": "karar"},
   "T-023": {"h": "f9f0ecfa95ac579b", "d": "karar"},
+  "T-025": {"h": "c848b2af01bb8f29", "d": "karar"},
+  "T-027": {"h": "07d3d05888390a45", "d": "karar"},
   "K-001": {"h": "b51b53012352df02", "d": "karar"},
   "K-002": {"h": "979161623fc19fe6", "d": "karar"},
   "K-003": {"h": "20453268d38ed585", "d": "karar"},
@@ -17,5 +20,9 @@
   "K-006": {"h": "4c2e564211cbdccd", "d": "karar"},
   "K-007": {"h": "7526804aa45cd459", "d": "acik"},
   "K-008": {"h": "b53981e07b23f90e", "d": "karar"},
-  "K-009": {"h": "2108ff6478e3b5d6", "d": "acik"}
+  "K-009": {"h": "2108ff6478e3b5d6", "d": "acik"},
+  "K-010": {"h": "6eda4b6ac7512dfe", "d": "acik"},
+  "K-011": {"h": "6eda4b6ac7512dfe", "d": "acik"},
+  "K-012": {"h": "6eda4b6ac7512dfe", "d": "acik"},
+  "K-013": {"h": "6eda4b6ac7512dfe", "d": "acik"}
 }
