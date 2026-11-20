@@ -73,7 +73,9 @@ Kod nesne yaratmaz, yalnız içerik, görünürlük ve davranış yazar. "Kod ya
 | İşaret | Sınıf | Not | İş |
 |---|---|---|---|
 | `emoji_ekran` | ScreenGui | Reveal'da görünen emoji şeridi | 5 |
+| `emoji_toplam` | TextLabel | Gösterilen çizimin canlı toplam tepkisi, herkese (K-006); nötr emoji ve sahibinin kendi oyu hariç | 5 |
 | `emoji_laugh` `emoji_skull` `emoji_shocked` `emoji_normal` | GuiButton | `Config.Round.Emojis` sırasıyla, seçilebilir (seçili emoji belirgin); en az 44 pt | 5 |
+| `emoji_sayi_laugh` `emoji_sayi_skull` `emoji_sayi_shocked` `emoji_sayi_normal` | TextLabel | Düğmenin yanında o emojinin canlı sayısı (sahibinin oyu hariç); düğmenin çocuğu olabilir | 5 |
 
 ## Podyum (T-007)
 
@@ -90,10 +92,12 @@ Kod nesne yaratmaz, yalnız içerik, görünürlük ve davranış yazar. "Kod ya
 | İşaret | Sınıf | Not | İş |
 |---|---|---|---|
 | `sahne_model_durak` | BasePart | Model klonunun durduğu yer; klon reveal ve podyum bitene kadar kalır (T-005) | 4 |
+| `sahne_kamera_cizim` | BasePart | Çizim aşamasında kameranın yeri ve yönü (K-007) | 4 |
+| `sahne_kamera_reveal` | BasePart | Reveal ve podyumda kameranın yeri ve yönü (K-007) | 4 |
 
 `SpawnLocation` işaretsizdir: Roblox oyuncuyu gerçek bir `SpawnLocation` sınıfına kendisi doğurur, kod ışınlamaz.
-Çizim ve reveal kamerası için K-007 cevabı beklenir; cevapla bir satır eklenir. Emoji düğmelerinin yanındaki canlı
-toplam yazıları K-006 cevabına bağlıdır; cevapla satırlar eklenir.
+Kamerayı kod yönetir, kilitli (K-007); Adam iki Part'ı haritada kamera yeri olarak işaretler. Kod kameranın
+`CFrame`'ini bu Part'tan alır; Part görünmez ve çarpışmasız olabilir.
 
 ## İşaretleme komutu
 

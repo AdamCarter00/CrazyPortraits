@@ -39,11 +39,14 @@ return table.freeze({
 		table.freeze({ mark = "reveal_sure", class = "Frame", group = "reveal" }),
 
 		table.freeze({ mark = "emoji_ekran", class = "ScreenGui", group = "emoji" }),
+		table.freeze({ mark = "emoji_toplam", class = "TextLabel", group = "emoji" }),
 
 		table.freeze({ mark = "podyum_ekran", class = "ScreenGui", group = "podyum" }),
 	}),
 
 	WorldMarks = table.freeze({
 		table.freeze({ mark = "sahne_model_durak", class = "BasePart", group = "dunya" }),
+		table.freeze({ mark = "sahne_kamera_cizim", class = "BasePart", group = "dunya" }),
+		table.freeze({ mark = "sahne_kamera_reveal", class = "BasePart", group = "dunya" }),
 	}),
 })

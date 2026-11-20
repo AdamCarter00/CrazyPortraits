@@ -197,6 +197,39 @@ describe("Tur -- gosterim ve oy", function()
 		expect(ack.payload.emoji).toBe("laugh")
 	end)
 
+	it("K-006: kabul edilen oy canli toplami herkese yayinlar; oy veren kimlik tasimaz", function()
+		local state, t = inReveal(3)
+		local current = state.round.reveal.list[1]
+		Machine.vote(state, 2, current.drawingId, "laugh", t)
+		local out = Machine.vote(state, 3, current.drawingId, "normal", t)
+		local tallyEffect = find(out, "Tally", "all")
+		expect(tallyEffect.payload.drawingId).toBe(current.drawingId)
+		expect(tallyEffect.payload.reactions.laugh).toBe(1)
+		expect(tallyEffect.payload.reactions.normal).toBe(1)
+		expect(tallyEffect.payload.score).toBe(1)
+		for key in tallyEffect.payload do
+			expect(key == "drawingId" or key == "reactions" or key == "score").toBe(true)
+		end
+		Schema.shape("Tally", tallyEffect.payload)
+	end)
+
+	it("K-006: sahibin kendi oyu canli toplama da girmez; reddedilen oy toplam yayinlamaz", function()
+		local state, t = inReveal(2)
+		local current = state.round.reveal.list[1]
+		local out = Machine.vote(state, current.ownerId, current.drawingId, "laugh", t)
+		expect(find(out, "Tally", "all").payload.score).toBe(0)
+		expect(find(Machine.vote(state, 2, current.drawingId, "bomb", t), "Tally")).toBeNil()
+	end)
+
+	it("K-006: gosterim sirasinda giren mevcut toplami da alir", function()
+		local state, t = inReveal(3)
+		local current = state.round.reveal.list[1]
+		Machine.vote(state, 2, current.drawingId, "skull", t)
+		Machine.join(state, 7, "P7", t + 1)
+		local out = Machine.ready(state, 7, t + 1)
+		expect(find(out, "Tally", 7).payload.reactions.skull).toBe(1)
+	end)
+
 	it("T-006: gec gelen oy yanlis cizime yazilmaz", function()
 		local state, t = inReveal(2)
 		local first = state.round.reveal.list[1]
@@ -320,7 +353,7 @@ describe("Tur -- istemciye giden veri", function()
 			Schema.shape(effect.name, effect.payload)
 			seen[effect.name] = true
 		end
-		for _, name in { "Lobby", "Drawing", "Collect", "Reveal", "VoteAccepted", "Podium" } do
+		for _, name in { "Lobby", "Drawing", "Collect", "Reveal", "VoteAccepted", "Tally", "Podium" } do
 			expect(seen[name]).toBe(true)
 		end
 	end)
