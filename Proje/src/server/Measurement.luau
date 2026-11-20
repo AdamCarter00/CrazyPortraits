@@ -86,9 +86,9 @@ function Measurement.leave(player: Player)
 	end)
 end
 
-function Measurement.observe(machine: any, at: number)
+function Measurement.observe(machine: any, at: number, action: any?)
 	guarded("observe", function()
-		Metrics.observe(state, machine, at)
+		Metrics.observe(state, machine, at, action)
 	end)
 end
 

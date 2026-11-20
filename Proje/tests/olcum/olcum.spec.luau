@@ -54,8 +54,8 @@ local function newServer(world)
 	return server
 end
 
-local function observe(server)
-	Metrics.observe(server.metrics, server.machine, server.world.now)
+local function observe(server, action)
+	Metrics.observe(server.metrics, server.machine, server.world.now, action)
 end
 
 local function loadProfile(world, id)
@@ -106,7 +106,14 @@ local function leave(server, id)
 end
 
 local function submit(server, id, strokes)
-	Machine.submit(server.machine, id, buffer.create(1), strokes, server.world.now)
+	local machine = server.machine
+	local action = { kind = "submit", userId = id, phase = machine.phase, round = machine.round }
+	Machine.submit(machine, id, buffer.create(1), strokes, server.world.now)
+	observe(server, action)
+end
+
+local function vote(server, id, drawingId, emoji)
+	Machine.vote(server.machine, id, drawingId, emoji, server.world.now)
 	observe(server)
 end
 
@@ -176,6 +183,15 @@ local function mean(list)
 	return total / #list
 end
 
+local function countBy(list, name)
+	local out = {}
+	for _, item in list do
+		local key = item.fields[name]
+		out[key] = (out[key] or 0) + 1
+	end
+	return out
+end
+
 local function wilson(successes, n)
 	local z = 1.959963984540054
 	local p = successes / n
@@ -185,9 +201,17 @@ local function wilson(successes, n)
 	return center - margin, center + margin
 end
 
+local SEP = Config.Alanlar.kohort.Ayirac
+
 local function cohort(day)
 	return function(fields)
-		return fields.kohort == day
+		return string.sub(fields.kohort, 1, #day + #SEP) == day .. SEP
+	end
+end
+
+local function tagged(day)
+	return function(fields)
+		return fields.kohort == day .. SEP .. Config.Kaynak.Etiketli
 	end
 end
 
@@ -203,6 +227,9 @@ local function field(name, ...)
 		return table.find(allowed, fields[name]) ~= nil
 	end
 end
+
+local FIRST_TYPES = Config.Alanlar.oturum_tipi.Ilk
+local firstSession = field("ilk_oturum", "evet")
 
 local P = {}
 for n = 1, 9 do
@@ -230,9 +257,17 @@ local function testDay()
 	submit(full, P[1], 3)
 	submit(full, P[2], 0)
 	advance(world, t0 + 70)
-	submit(full, P[3], 5)
+	submit(full, P[3], 25)
+	advance(world, t0 + 74)
+	vote(full, P[2], "1-1", "laugh")
 	advance(world, t0 + 75)
 	join(full, P[4])
+	advance(world, t0 + 76)
+	vote(full, P[4], "1-1", "normal")
+	advance(world, t0 + 80)
+	vote(full, P[1], "1-2", "skull")
+	advance(world, t0 + 81)
+	vote(full, P[3], "1-2", "laugh")
 	advance(world, t0 + 120)
 	for _, id in { P[1], P[2], P[3], P[4] } do
 		submit(full, id, 0)
@@ -243,10 +278,16 @@ local function testDay()
 	for _, id in { P[1], P[3], P[4] } do
 		submit(full, id, 2)
 	end
+	advance(world, t0 + 155)
+	vote(full, P[4], "3-1", "laugh")
 	advance(world, t0 + 320)
 	leave(full, P[1])
+	advance(world, t0 + 328)
+	submit(full, P[3], 2)
 	advance(world, t0 + 330)
 	leave(full, P[3])
+	advance(world, t0 + 336)
+	submit(full, P[4], 0)
 	advance(world, t0 + 380)
 	leave(full, P[4])
 
@@ -287,7 +328,9 @@ end
 
 local world = testDay()
 local newcomers = unique(events(world, "IlkGiris", cohort(DAY1)))
-local firstSession = field("ilk_oturum", "evet")
+local D1E = DAY1 .. SEP .. "etiketsiz"
+local D1T = DAY1 .. SEP .. "etiketli"
+local UNKNOWN = "bilinmiyor" .. SEP .. "bilinmiyor"
 
 describe("Olcum -- test gunu akisi", function()
 	it("simulasyon uyarisiz biter; payda: gun 1 kohortunda 7 yeni oyuncu", function()
@@ -296,19 +339,19 @@ describe("Olcum -- test gunu akisi", function()
 		expect(#events(world, "IlkGiris")).toBe(7)
 	end)
 
-	it("T-021: dolu sunucu -- IlkGiris degeri tek basina girene 1, digerlerine 0", function()
-		local values = {}
+	it("T-021: dolu sunucu -- IlkGiris degeri tek basina girene 1, digerlerine 0; kohort gun/kaynak", function()
+		local got = {}
 		for _, item in events(world, "IlkGiris") do
-			values[item.user] = item.value
+			got[item.user] = { item.value, item.fields.kohort }
 		end
-		expect(values).toEqual({
-			[P[1]] = 1,
-			[P[2]] = 0,
-			[P[3]] = 0,
-			[P[4]] = 0,
-			[P[5]] = 1,
-			[P[6]] = 1,
-			[P[7]] = 1,
+		expect(got).toEqual({
+			[P[1]] = { 1, D1T },
+			[P[2]] = { 0, D1E },
+			[P[3]] = { 0, D1E },
+			[P[4]] = { 0, D1E },
+			[P[5]] = { 1, D1E },
+			[P[6]] = { 1, D1T },
+			[P[7]] = { 1, D1E },
 		})
 	end)
 
@@ -373,6 +416,7 @@ describe("Olcum -- test gunu akisi", function()
 			{ P[1], "2", "model" },
 			{ P[3], "2", "cizdi" },
 			{ P[4], "2", "cizdi" },
+			{ P[4], "3", "bos_teslim" },
 		})
 	end)
 
@@ -384,32 +428,67 @@ describe("Olcum -- test gunu akisi", function()
 		expect(got).toEqual({ [P[1]] = "turda", [P[3]] = "turda", [P[4]] = "lobide", [P[7]] = "lobide" })
 	end)
 
-	it("T-021: Cikis -- oturum tipi ilk oturum kovasi, donus ya da bilinmiyor", function()
+	it("T-021: Cikis -- oturum tipi ve faz; ciktigi anki faz, cikisin turu ilerletmesinden once", function()
 		local got = {}
 		for _, item in events(world, "Cikis") do
-			table.insert(got, { item.user, item.fields.oturum_tipi, item.value, item.fields.kohort })
+			table.insert(got, { item.user, item.fields.oturum_tipi, item.fields.faz, item.value, item.fields.kohort })
 		end
 		expect(got).toEqual({
-			{ P[5], "ilk_0-60", 40, DAY1 },
-			{ P[2], "ilk_60-300", 120, DAY1 },
-			{ P[1], "ilk_300+", 320, DAY1 },
-			{ P[3], "ilk_300+", 305, DAY1 },
-			{ P[4], "ilk_300+", 305, DAY1 },
-			{ P[8], "bilinmiyor", 30, "bilinmiyor" },
-			{ P[9], "donus", 60, "bilinmiyor" },
-			{ P[5], "donus", 60, DAY1 },
-			{ P[6], "ilk_60-300", 240, DAY1 },
-			{ P[7], "ilk_300+", 420, DAY1 },
-			{ P[6], "donus", 120, DAY1 },
+			{ P[5], "ilk_0-60", "lobi", 40, D1E },
+			{ P[2], "ilk_60-300", "cizim_teslimsiz", 120, D1E },
+			{ P[1], "ilk_300+", "cizim_teslimsiz", 320, D1T },
+			{ P[3], "ilk_300+", "teslim_sonrasi", 305, D1E },
+			{ P[4], "ilk_300+", "lobi", 305, D1E },
+			{ P[8], "bilinmiyor", "lobi", 30, UNKNOWN },
+			{ P[9], "donus", "lobi", 60, UNKNOWN },
+			{ P[5], "donus", "lobi", 60, D1E },
+			{ P[6], "ilk_60-300", "lobi", 240, D1T },
+			{ P[7], "ilk_300+", "lobi", 420, D1E },
+			{ P[6], "donus", "lobi", 120, D1T },
+		})
+	end)
+
+	it("T-021: Teslim her teslimde -- cizim basindan sn, dugme ya da sure doldu, cizgi kovasi", function()
+		local got = {}
+		for _, item in events(world, "Teslim") do
+			table.insert(got, { item.user, item.value, item.fields.nasil, item.fields.cizgi })
+		end
+		expect(got).toEqual({
+			{ P[1], 22, "dugme", "1-10" },
+			{ P[2], 22, "dugme", "0" },
+			{ P[3], 32, "dugme", "11-40" },
+			{ P[1], 11, "dugme", "0" },
+			{ P[2], 11, "dugme", "0" },
+			{ P[3], 11, "dugme", "0" },
+			{ P[4], 11, "dugme", "0" },
+			{ P[1], 12, "dugme", "1-10" },
+			{ P[3], 12, "dugme", "1-10" },
+			{ P[4], 12, "dugme", "1-10" },
+			{ P[3], 134, "dugme", "1-10" },
+			{ P[4], 142, "sure_doldu", "0" },
+		})
+	end)
+
+	it("T-021: CizimTepki her cizimin reveal'i bitince sahibine; sahibin oyu sayilmaz, notr sayilir; sahibi cikmissa gitmez", function()
+		local got = {}
+		for _, item in events(world, "CizimTepki") do
+			table.insert(got, { item.user, item.value, item.fields.ekrandaki })
+		end
+		expect(got).toEqual({
+			{ P[1], 67, "2-3" },
+			{ P[3], 33, "2-3" },
+			{ P[1], 50, "2-3" },
+			{ P[3], 0, "2-3" },
+			{ P[4], 0, "2-3" },
 		})
 	end)
 
 	it("T-021: gece yarisi donusu D1Donus gonderir; ayni gun tekrar giris ve cikmadan gecme gondermez", function()
 		local got = {}
 		for _, item in events(world, "D1Donus") do
-			table.insert(got, { item.user, item.fields.kohort, item.fields.kaynak, item.fields.surum })
+			table.insert(got, { item.user, item.fields.kohort, item.fields.surum })
 		end
-		expect(got).toEqual({ { P[6], DAY1, "etiketli", Config.Surum } })
+		expect(got).toEqual({ { P[6], D1T, Config.Surum } })
 	end)
 
 	it("T-021: ilk giris kaydi profile oyuncu numarasiyla bir kez yazilir", function()
@@ -454,7 +533,7 @@ describe("Olcum -- T-021 Okuma tablosu (gun 1 kohortu, tekil kullanici)", functi
 	end)
 
 	it("T-021: ortalama oturum -- ilk oturum 1750/7, tum oturumlar 1930/9", function()
-		local first = events(world, "Cikis", both(cohort(DAY1), field("oturum_tipi", table.unpack(Config.Alanlar.oturum_tipi.Ilk))))
+		local first = events(world, "Cikis", both(cohort(DAY1), field("oturum_tipi", table.unpack(FIRST_TYPES))))
 		expect(#first).toBe(7)
 		expect(mean(first)).toBeCloseTo(1750 / 7)
 		local all = events(world, "Cikis", cohort(DAY1))
@@ -480,12 +559,12 @@ describe("Olcum -- T-021 Okuma tablosu (gun 1 kohortu, tekil kullanici)", functi
 		expect({ pay, newcomers }).toEqual({ 3, 7 })
 	end)
 
-	it("T-021: tur zinciri R0 > R1 > R2 > R3 = 4/7, 4/7, 3/7, 0/7", function()
+	it("T-021: tur zinciri R0 > R1 > R2 > R3 = 4/7, 4/7, 3/7, 1/7", function()
 		local chain = { unique(events(world, "TurBasladi", both(cohort(DAY1), firstSession))) }
 		for order = 1, 3 do
 			table.insert(chain, unique(events(world, "TurTamam", both(cohort(DAY1), field("tur_sirasi", tostring(order))))))
 		end
-		expect(chain).toEqual({ 4, 4, 3, 0 })
+		expect(chain).toEqual({ 4, 4, 3, 1 })
 	end)
 
 	it("T-021: oylama anina ulasma = IlkReveal (ilk oturum) / IlkGiris = 4/7", function()
@@ -509,15 +588,41 @@ describe("Olcum -- T-021 Okuma tablosu (gun 1 kohortu, tekil kullanici)", functi
 		expect({ #alone, #all }).toEqual({ 3, 7 })
 	end)
 
-	it("T-021: reklam etiketli dilimi -- kaynak alani olan olaylarda: D1 1/2, oturum 280, ilk 60 sn 0/2, 5. dk 1/2", function()
-		local tagged = field("kaynak", "etiketli")
-		local payda = unique(events(world, "IlkGiris", both(cohort(DAY1), tagged)))
+	it("T-021: nerede cikiliyor = Cikis faz dagilimi (ilk oturum tipleri): lobi 4, cizimde teslimsiz 2, teslimden sonra 1", function()
+		local first = events(world, "Cikis", both(cohort(DAY1), field("oturum_tipi", table.unpack(FIRST_TYPES))))
+		expect(countBy(first, "faz")).toEqual({ lobi = 4, cizim_teslimsiz = 2, teslim_sonrasi = 1 })
+	end)
+
+	it("T-021: teslim suresi ve yolu = Teslim ortalamasi 432/12; dugme 11, sure doldu 1; cizgi 0:6, 1-10:5, 11-40:1", function()
+		local list = events(world, "Teslim", cohort(DAY1))
+		expect(#list).toBe(12)
+		expect(mean(list)).toBeCloseTo(36)
+		expect(countBy(list, "nasil")).toEqual({ dugme = 11, sure_doldu = 1 })
+		expect(countBy(list, "cizgi")).toEqual({ ["0"] = 6, ["1-10"] = 5, ["11-40"] = 1 })
+	end)
+
+	it("T-021: reveal ilgi goruyor mu = CizimTepki ortalamasi ekrandaki oyuncu kovasiyla: 2-3 kovasinda 150/5", function()
+		local list = events(world, "CizimTepki", both(cohort(DAY1), field("ekrandaki", "2-3")))
+		expect(#list).toBe(5)
+		expect(mean(list)).toBeCloseTo(30)
+		expect(#events(world, "CizimTepki", field("ekrandaki", "1", "4-7"))).toBe(0)
+	end)
+
+	it("K-008: reklam etiketli dilimi butun olaylarda kohort/kaynak alaniyla okunur", function()
+		local slice = tagged(DAY1)
+		local payda = unique(events(world, "IlkGiris", slice))
 		expect(payda).toBe(2)
-		expect(unique(events(world, "D1Donus", both(cohort(DAY1), tagged)))).toBe(1)
-		local first = events(world, "Cikis", both(both(cohort(DAY1), tagged), field("oturum_tipi", table.unpack(Config.Alanlar.oturum_tipi.Ilk))))
-		expect(mean(first)).toBeCloseTo(280)
-		expect(unique(events(world, "Cikis", both(both(cohort(DAY1), tagged), field("oturum_tipi", "ilk_0-60"))))).toBe(0)
-		expect(unique(events(world, "BesDakika", both(cohort(DAY1), tagged)))).toBe(1)
+		expect(unique(events(world, "D1Donus", slice))).toBe(1)
+		expect(mean(events(world, "Cikis", both(slice, field("oturum_tipi", table.unpack(FIRST_TYPES)))))).toBeCloseTo(280)
+		expect(unique(events(world, "Cikis", both(slice, field("oturum_tipi", "ilk_0-60"))))).toBe(0)
+		expect(unique(events(world, "BesDakika", slice))).toBe(1)
+		expect(unique(events(world, "TurBasladi", both(slice, firstSession)))).toBe(1)
+		expect(unique(events(world, "IlkReveal", both(slice, firstSession)))).toBe(1)
+		expect(unique(events(world, "TurTamam", both(slice, field("tur_sirasi", "1"))))).toBe(1)
+		expect(unique(events(world, "TurTamam", both(slice, field("tur_sirasi", "2"))))).toBe(1)
+		expect(#events(world, "Eslesme", both(both(slice, firstSession), field("eslesti", "hayir")))).toBe(1)
+		expect(mean(events(world, "Teslim", slice))).toBeCloseTo(15)
+		expect(mean(events(world, "CizimTepki", slice))).toBeCloseTo(58.5)
 	end)
 end)
 
@@ -532,7 +637,7 @@ describe("Olcum -- profil ve sinir durumlari", function()
 		expect(#events(w, "IlkGiris")).toBe(0)
 		expect(#events(w, "BesDakika")).toBe(0)
 		local exit = events(w, "Cikis")[1].fields
-		expect(exit).toEqual({ kohort = "bilinmiyor", kaynak = "bilinmiyor", oturum_tipi = "bilinmiyor" })
+		expect(exit).toEqual({ kohort = UNKNOWN, oturum_tipi = "bilinmiyor", faz = "lobi" })
 		expect(events(w, "Eslesme")[1].fields.ilk_oturum).toBe("bilinmiyor")
 	end)
 
@@ -553,7 +658,7 @@ describe("Olcum -- profil ve sinir durumlari", function()
 		expect(#first).toBe(1)
 		expect(first[1].user).toBe(1)
 		expect(first[1].value).toBe(0)
-		expect(first[1].fields.kohort).toBe(DAY1)
+		expect(first[1].fields.kohort).toBe(D1E)
 		expect(#events(w, "IlkGiris")).toBe(1)
 	end)
 
@@ -564,7 +669,7 @@ describe("Olcum -- profil ve sinir durumlari", function()
 		advance(w, at(DAY2, 0, 0, 2))
 		resolve(s, 1)
 		expect(w.profiles[1].record.day).toBe(DAY1)
-		expect(events(w, "IlkGiris")[1].fields.kohort).toBe(DAY1)
+		expect(events(w, "IlkGiris")[1].fields.kohort).toBe(D1E)
 	end)
 
 	it("LaunchData giriste bos, profil aninda doluysa kaynak etiketli olur", function()
@@ -572,7 +677,7 @@ describe("Olcum -- profil ve sinir durumlari", function()
 		local s = newServer(w)
 		join(s, 1, { later = true })
 		resolve(s, 1, TAG)
-		expect(events(w, "IlkGiris")[1].fields.kaynak).toBe("etiketli")
+		expect(events(w, "IlkGiris")[1].fields.kohort).toBe(D1T)
 		expect(w.profiles[1].record.source).toBe("etiketli")
 	end)
 
@@ -592,12 +697,13 @@ describe("Olcum -- profil ve sinir durumlari", function()
 	end)
 
 	it("kohort araligi disindaki gun aralik_disi olarak gider, olay dusmez", function()
-		local w = newWorld(at(Day.after(Config.Alanlar.kohort.Gunler.Son, 1), 8))
+		local beyond = Day.after(Config.Alanlar.kohort.Bilesik[1].Gunler.Son, 1)
+		local w = newWorld(at(beyond, 8))
 		local s = newServer(w)
 		join(s, 1)
 		leave(s, 1)
-		expect(events(w, "IlkGiris")[1].fields.kohort).toBe("aralik_disi")
-		expect(w.profiles[1].record.day).toBe(Day.after(Config.Alanlar.kohort.Gunler.Son, 1))
+		expect(events(w, "IlkGiris")[1].fields.kohort).toBe("aralik_disi" .. SEP .. "etiketsiz")
+		expect(w.profiles[1].record.day).toBe(beyond)
 		expect(w.warnings).toEqual({})
 	end)
 
@@ -641,13 +747,92 @@ describe("Olcum -- profil ve sinir durumlari", function()
 			advance(w, w.now + RoundTest.TransitionSeconds + 2 * RoundTest.RevealSecondsPerDrawing + RoundTest.PodiumSeconds + 1)
 		end
 		local orders = {}
-		for _, item in events(w, "TurTamam", function(f)
-			return true
-		end) do
+		for _, item in events(w, "TurTamam") do
 			if item.user == 1 then
 				table.insert(orders, item.fields.tur_sirasi)
 			end
 		end
 		expect(orders).toEqual({ "1", "2", "3", "4", "5+", "5+" })
+	end)
+
+	it("T-021: Cikis fazi reveal ve podyum", function()
+		local w = newWorld(at(DAY1, 8))
+		local s = newServer(w)
+		for id = 1, 3 do
+			join(s, id)
+		end
+		advance(w, w.now + RoundTest.LobbyCountdownSeconds)
+		for id = 1, 3 do
+			submit(s, id, 1)
+		end
+		advance(w, w.now + RoundTest.TransitionSeconds + 1)
+		leave(s, 1)
+		advance(w, w.now + 3 * RoundTest.RevealSecondsPerDrawing)
+		leave(s, 2)
+		local got = {}
+		for _, item in events(w, "Cikis") do
+			got[item.user] = item.fields.faz
+		end
+		expect(got).toEqual({ [1] = "reveal", [2] = "podyum" })
+	end)
+
+	it("T-021: Teslim her teslimde bir kez; reddedilen ikinci gonderim ve tur disi gonderim sayilmaz", function()
+		local w = newWorld(at(DAY1, 8))
+		local s = newServer(w)
+		join(s, 1)
+		join(s, 2)
+		submit(s, 1, 4)
+		advance(w, w.now + RoundTest.LobbyCountdownSeconds + RoundTest.TransitionSeconds + 5)
+		submit(s, 1, 4)
+		submit(s, 1, 9)
+		local list = events(w, "Teslim")
+		expect(#list).toBe(1)
+		expect(list[1].value).toBe(5)
+		expect(list[1].fields.cizgi).toBe("1-10")
+	end)
+
+	it("T-021: cizgi kovasi sinirlari 0 / 1-10 / 11-40 / 41-80 / 80+", function()
+		local w = newWorld(at(DAY1, 8))
+		local s = newServer(w)
+		local counts = { 0, 1, 10, 11, 40, 41, 80, 81 }
+		for id = 1, #counts do
+			join(s, id)
+		end
+		advance(w, w.now + RoundTest.LobbyCountdownSeconds + RoundTest.TransitionSeconds)
+		for id, strokes in counts do
+			submit(s, id, strokes)
+		end
+		local got = {}
+		for _, item in events(w, "Teslim") do
+			got[item.user] = item.fields.cizgi
+		end
+		expect(got).toEqual({ "0", "1-10", "1-10", "11-40", "11-40", "41-80", "41-80", "80+" })
+	end)
+
+	it("T-021: CizimTepki ekrandaki oyuncu kovasi 1 ve 4-7; sahibin kendi oyu sayilmaz, notr emoji sayilir", function()
+		local function play(count, votes)
+			local w = newWorld(at(DAY1, 8))
+			local s = newServer(w)
+			for id = 1, count do
+				join(s, id)
+			end
+			advance(w, w.now + RoundTest.LobbyCountdownSeconds)
+			for id = 1, count do
+				submit(s, id, 1)
+			end
+			for _, item in votes do
+				vote(s, item[1], "1-1", item[2])
+			end
+			advance(w, w.now + RoundTest.TransitionSeconds + (count + 1) * RoundTest.RevealSecondsPerDrawing)
+			local got = {}
+			for _, item in events(w, "CizimTepki") do
+				got[item.user] = { item.value, item.fields.ekrandaki }
+			end
+			return got
+		end
+		expect(play(2, { { 1, "laugh" }, { 2, "normal" } })).toEqual({ [1] = { 100, "1" }, [2] = { 0, "1" } })
+		local five = play(5, { { 2, "skull" }, { 3, "normal" } })
+		expect(five[1]).toEqual({ 50, "4-7" })
+		expect(five[5]).toEqual({ 0, "4-7" })
 	end)
 end)

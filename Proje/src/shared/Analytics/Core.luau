@@ -23,6 +23,18 @@ local function allows(spec: any, value: any): boolean
 	if type(value) ~= "string" then
 		return false
 	end
+	if spec.Bilesik then
+		local parts = string.split(value, spec.Ayirac)
+		if #parts ~= #spec.Bilesik then
+			return false
+		end
+		for index, part in spec.Bilesik do
+			if not allows(part, parts[index]) then
+				return false
+			end
+		end
+		return true
+	end
 	for key, entry in spec do
 		if key == DAY_RANGE then
 			if Day.isDay(value) and value >= entry.Ilk and value <= entry.Son then

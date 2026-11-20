@@ -13,13 +13,13 @@ local StrokeCodec = require(Shared.Drawing.StrokeCodec)
 local RoundService = {}
 
 local state = nil
-local observers: { (machine: any, now: number) -> () } = {}
+local observers: { (machine: any, now: number, action: any?) -> () } = {}
 
 local function now(): number
 	return workspace:GetServerTimeNow()
 end
 
-local function apply(effects)
+local function apply(effects, action: any?)
 	for _, effect in effects do
 		if effect.to == "all" then
 			Net.toAll(effect.name, effect.payload)
@@ -29,14 +29,14 @@ local function apply(effects)
 	end
 	local at = now()
 	for _, observer in observers do
-		local ok, err = pcall(observer, state, at)
+		local ok, err = pcall(observer, state, at, action)
 		if not ok then
 			warn("[RoundService] gozlemci:", err)
 		end
 	end
 end
 
-function RoundService.observe(observer: (machine: any, now: number) -> ())
+function RoundService.observe(observer: (machine: any, now: number, action: any?) -> ())
 	table.insert(observers, observer)
 end
 
@@ -51,7 +51,8 @@ local function onSubmit(player: Player, payload: any)
 	if rejected > 0 then
 		warn("[RoundService]", player.Name, "-", rejected, "gecersiz cizgi atildi")
 	end
-	apply(Machine.submit(state, player.UserId, StrokeCodec.encode(strokes), #strokes, now()))
+	local action = { kind = "submit", userId = player.UserId, phase = state.phase, round = state.round }
+	apply(Machine.submit(state, player.UserId, StrokeCodec.encode(strokes), #strokes, now()), action)
 end
 
 local function onVote(player: Player, payload: any)

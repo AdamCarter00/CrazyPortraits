@@ -4,6 +4,7 @@ local Day = require(script.Parent.Day)
 
 export type Record = { day: string, source: string, version: string }
 export type ProfileResult = { ok: boolean, record: Record?, fresh: boolean? }
+export type Action = { kind: string, userId: number, phase: string, round: any }
 
 local Metrics = {}
 
@@ -27,43 +28,48 @@ local function seconds(value: number): number
 	return math.floor(value + 0.5)
 end
 
+local function isParticipant(round, id: number): boolean
+	return round ~= nil and table.find(round.participantOrder, id) ~= nil
+end
+
+local function drawingPhase(phase: string): boolean
+	return phase == "Drawing" or phase == "Collecting"
+end
+
 function Metrics.new(deps: { config: any, core: any })
 	return {
 		config = deps.config,
 		core = deps.core,
 		players = {},
 		completedRound = nil :: number?,
+		submits = { round = nil :: any, seen = {} },
+		shown = nil :: any,
 	}
 end
 
 function Metrics.source(config, launchData: any): string
-	local values = config.Alanlar.kaynak
 	if type(launchData) == "string" and launchData ~= "" then
-		return values.Etiketli
+		return config.Kaynak.Etiketli
 	end
-	return values.Etiketsiz
+	return config.Kaynak.Etiketsiz
 end
 
-local function cohort(config, day: string?): string
-	local values = config.Alanlar.kohort
-	if day == nil or not Day.isDay(day) then
-		return values.Bilinmiyor
+function Metrics.cohort(config, day: string?, source: string?): string
+	local spec = config.Alanlar.kohort
+	local days = spec.Bilesik[1]
+	local part = days.Bilinmiyor
+	if day ~= nil and Day.isDay(day) then
+		part = if day < days.Gunler.Ilk or day > days.Gunler.Son then days.AralikDisi else day
 	end
-	local range = values.Gunler
-	if day < range.Ilk or day > range.Son then
-		return values.AralikDisi
-	end
-	return day
+	return part .. spec.Ayirac .. (source or config.Kaynak.Bilinmiyor)
 end
 
 local function describeProfile(config, status: string, record: Record?)
-	local unknownSource = config.Alanlar.kaynak.Bilinmiyor
 	local firstSession = config.Alanlar.ilk_oturum
 	return {
 		status = status,
 		record = record,
-		cohort = cohort(config, record and record.day),
-		source = if record then record.source else unknownSource,
+		cohort = Metrics.cohort(config, record and record.day, record and record.source),
 		firstSession = if status == Status.New
 			then firstSession.Evet
 			elseif status == Status.Unknown then firstSession.Bilinmiyor
@@ -119,6 +125,7 @@ function Metrics.join(m, id: number, now: number, launchData: any)
 		info = nil :: any,
 		pending = {},
 		matched = false,
+		phase = m.config.Alanlar.faz.Lobi,
 		fiveMinutes = false,
 		startedRound = false,
 		sawReveal = false,
@@ -141,8 +148,8 @@ function Metrics.profile(m, id: number, now: number, result: ProfileResult, laun
 		return nil
 	end
 	local config = m.config
-	if Metrics.source(config, launchData) == config.Alanlar.kaynak.Etiketli then
-		player.source = config.Alanlar.kaynak.Etiketli
+	if Metrics.source(config, launchData) == config.Kaynak.Etiketli then
+		player.source = config.Kaynak.Etiketli
 	end
 	local write: Record? = nil
 	local info
@@ -159,13 +166,9 @@ function Metrics.profile(m, id: number, now: number, result: ProfileResult, laun
 
 	local record = info.record
 	if info.status == Status.New then
-		m.core:log(id, "IlkGiris", if player.alone then 1 else 0, {
-			kohort = info.cohort,
-			kaynak = record.source,
-			surum = record.version,
-		})
+		m.core:log(id, "IlkGiris", if player.alone then 1 else 0, { kohort = info.cohort, surum = record.version })
 	elseif info.status == Status.Returning and Day.fromUnix(player.joinedAt) == Day.after(record.day, 1) then
-		m.core:log(id, "D1Donus", 1, { kohort = info.cohort, kaynak = record.source, surum = record.version })
+		m.core:log(id, "D1Donus", 1, { kohort = info.cohort, surum = record.version })
 	end
 	settle(m, player, info)
 	return write
@@ -201,14 +204,24 @@ function Metrics.leave(m, id: number, now: number)
 	end
 	m.core:log(id, "Cikis", seconds(duration), {
 		kohort = info.cohort,
-		kaynak = info.source,
 		oturum_tipi = sessionType(config, info, duration),
+		faz = player.phase,
 	})
 	m.players[id] = nil
 end
 
-local function isParticipant(round, id: number): boolean
-	return round ~= nil and table.find(round.participantOrder, id) ~= nil
+local function phaseOf(config, machine, id: number): string
+	local values = config.Alanlar.faz
+	local phase = machine.phase
+	local round = machine.round
+	if phase == "Reveal" then
+		return values.Reveal
+	elseif phase == "Podium" then
+		return values.Podyum
+	elseif drawingPhase(phase) and isParticipant(round, id) then
+		return if round.awaiting[id] then values.CizimTeslimsiz else values.TeslimSonrasi
+	end
+	return values.Lobi
 end
 
 local function moment(config, machine, id: number): string
@@ -236,9 +249,89 @@ local function firstSessionOnly(info): boolean
 	return info.status == Status.New
 end
 
-function Metrics.observe(m, machine, now: number)
+local function onSubmit(m, action: Action, now: number)
+	local round = action.round
+	local id = action.userId
+	local player = m.players[id]
+	if not round or not player or not drawingPhase(action.phase) then
+		return
+	end
+	local drawing = round.drawings[id]
+	local submits = m.submits
+	if submits.round ~= round then
+		submits.round = round
+		submits.seen = {}
+	end
+	if not drawing or submits.seen[id] then
+		return
+	end
+	submits.seen[id] = true
 	local config = m.config
+	local how = if action.phase == "Drawing" then config.Alanlar.nasil.Dugme else config.Alanlar.nasil.SureDoldu
+	local strokes = bucket(config.Alanlar.cizgi, config.CizgiSinirlari, drawing.strokeCount)
+	event(m, player, "Teslim", seconds(math.max(now - round.startsAt, 0)), function(info)
+		return { nasil = how, cizgi = strokes, kohort = info.cohort }
+	end)
+end
+
+local function finishShown(m)
+	local shown = m.shown
+	m.shown = nil
+	local owner = m.players[shown.entry.ownerId]
+	if not owner then
+		return
+	end
+	local eligible, reacted = 0, 0
+	local votes = shown.round.votes[shown.entry.drawingId] or {}
+	for id in shown.viewers do
+		eligible += 1
+		if votes[id] ~= nil then
+			reacted += 1
+		end
+	end
+	if eligible == 0 then
+		return
+	end
+	local config = m.config
+	local screen = bucket(config.Alanlar.ekrandaki, config.EkrandakiSinirlari, eligible)
+	event(m, owner, "CizimTepki", seconds(100 * reacted / eligible), function(info)
+		return { ekrandaki = screen, kohort = info.cohort }
+	end)
+end
+
+local function trackReveal(m, machine)
+	local round = machine.round
+	local current = nil
+	if machine.phase == "Reveal" and round and round.reveal then
+		current = round.reveal.list[round.reveal.index]
+	end
+	if m.shown and m.shown.entry ~= current then
+		finishShown(m)
+	end
+	if current == nil then
+		return
+	end
+	if not m.shown then
+		m.shown = { round = round, entry = current, viewers = {} }
+	end
+	for id, state in machine.players do
+		if state.ready and id ~= current.ownerId then
+			m.shown.viewers[id] = true
+		end
+	end
+end
+
+function Metrics.observe(m, machine, now: number, action: Action?)
+	local config = m.config
+	if action and action.kind == "submit" then
+		onSubmit(m, action, now)
+	end
+	trackReveal(m, machine)
+
 	for id, player in m.players do
+		if machine.players[id] then
+			player.phase = phaseOf(config, machine, id)
+		end
 		if not player.fiveMinutes and now - player.joinedAt >= config.BesDakikaSaniye then
 			player.fiveMinutes = true
 			local at = moment(config, machine, id)
@@ -246,7 +339,7 @@ function Metrics.observe(m, machine, now: number)
 				if not firstSessionOnly(info) then
 					return nil
 				end
-				return { kohort = info.cohort, kaynak = info.source, o_an = at }
+				return { kohort = info.cohort, o_an = at }
 			end)
 		end
 	end
@@ -257,7 +350,7 @@ function Metrics.observe(m, machine, now: number)
 		return
 	end
 
-	if phase == "Drawing" or phase == "Collecting" then
+	if drawingPhase(phase) then
 		local roles = config.Alanlar.rol
 		for _, id in round.participantOrder do
 			local player = m.players[id]

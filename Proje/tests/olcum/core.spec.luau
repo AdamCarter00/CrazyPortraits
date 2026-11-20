@@ -40,10 +40,18 @@ local function harness(options)
 	return h
 end
 
-local GOOD_EXIT = { kohort = "2026-11-20", kaynak = "etiketsiz", oturum_tipi = "donus" }
-local GOOD_FIVE = { kohort = "2026-11-20", kaynak = "etiketsiz", o_an = "lobide" }
+local GOOD_EXIT = { kohort = "2026-11-20/etiketsiz", oturum_tipi = "donus", faz = "lobi" }
+local GOOD_FIVE = { kohort = "2026-11-20/etiketsiz", o_an = "lobide" }
 
-local function cardinality(spec)
+local cardinality
+function cardinality(spec)
+	if spec.Bilesik then
+		local product = 1
+		for _, part in spec.Bilesik do
+			product *= cardinality(part)
+		end
+		return product
+	end
 	local count = 0
 	for key, entry in spec do
 		if key == "Gunler" then
@@ -81,6 +89,8 @@ describe("Olcum cekirdegi -- sema", function()
 	it("T-021: kova etiketleri sinir sayisindan bir fazla", function()
 		expect(#Config.Alanlar.oturum_tipi.Ilk).toBe(#Config.IlkOturumSinirlari + 1)
 		expect(#Config.Alanlar.tur_sirasi).toBe(#Config.TurSirasiSinirlari + 1)
+		expect(#Config.Alanlar.cizgi).toBe(#Config.CizgiSinirlari + 1)
+		expect(#Config.Alanlar.ekrandaki).toBe(#Config.EkrandakiSinirlari + 1)
 		expect(Core.allows(Config.Alanlar.surum, Config.Surum)).toBe(true)
 	end)
 
@@ -101,32 +111,44 @@ describe("Olcum cekirdegi -- sema", function()
 		expect(h.sent[1].name).toBe(Config.Olaylar.Cikis.Ad)
 		expect(h.sent[1].value).toBe(42)
 		expect(h.sent[1].custom).toEqual({
-			CustomField01 = "2026-11-20",
-			CustomField02 = "etiketsiz",
-			CustomField03 = "donus",
+			CustomField01 = "2026-11-20/etiketsiz",
+			CustomField02 = "donus",
+			CustomField03 = "lobi",
 		})
 	end)
 
 	it("T-021: listede olmayan alan degeri gonderilmez", function()
 		local h = harness()
-		expect(h.core:log(1, "Cikis", 1, { kohort = "2026-11-20", kaynak = "reklam", oturum_tipi = "donus" })).toBe(false)
-		expect(h.core:log(1, "Cikis", 1, { kohort = "2026-11-20", kaynak = "etiketsiz" })).toBe(false)
-		expect(h.core:log(1, "Cikis", 1, { kohort = "2026-11-20", kaynak = "etiketsiz", oturum_tipi = "donus", ad = "x" })).toBe(false)
+		expect(h.core:log(1, "Cikis", 1, { kohort = "2026-11-20/reklam", oturum_tipi = "donus", faz = "lobi" })).toBe(false)
+		expect(h.core:log(1, "Cikis", 1, { kohort = "2026-11-20/etiketsiz", oturum_tipi = "donus" })).toBe(false)
+		expect(h.core:log(1, "Cikis", 1, { kohort = "2026-11-20/etiketsiz", oturum_tipi = "donus", faz = "lobi", ad = "x" })).toBe(false)
 		expect(h.core:log(1, "Yok", 1, {})).toBe(false)
 		expect(#h.sent).toBe(0)
 		expect(#h.warnings).toBe(4)
 	end)
 
-	it("kohort yalniz araliktaki gecerli UTC gunlerini kabul eder", function()
+	it("K-008: kohort alani gun/kaynak; gun araliktaki gecerli UTC gunu, kaynak kapali listede", function()
 		local spec = Config.Alanlar.kohort
-		expect(Core.allows(spec, spec.Gunler.Ilk)).toBe(true)
-		expect(Core.allows(spec, spec.Gunler.Son)).toBe(true)
-		expect(Core.allows(spec, Day.after(spec.Gunler.Ilk, -1))).toBe(false)
-		expect(Core.allows(spec, Day.after(spec.Gunler.Son, 1))).toBe(false)
-		expect(Core.allows(spec, "2026-11-31")).toBe(false)
-		expect(Core.allows(spec, "bilinmiyor")).toBe(true)
-		expect(Core.allows(spec, "aralik_disi")).toBe(true)
+		local range = spec.Bilesik[1].Gunler
+		expect(Core.allows(spec, range.Ilk .. "/etiketli")).toBe(true)
+		expect(Core.allows(spec, range.Son .. "/etiketsiz")).toBe(true)
+		expect(Core.allows(spec, "bilinmiyor/bilinmiyor")).toBe(true)
+		expect(Core.allows(spec, "aralik_disi/etiketli")).toBe(true)
+		expect(Core.allows(spec, Day.after(range.Ilk, -1) .. "/etiketli")).toBe(false)
+		expect(Core.allows(spec, Day.after(range.Son, 1) .. "/etiketli")).toBe(false)
+		expect(Core.allows(spec, "2026-11-31/etiketli")).toBe(false)
+		expect(Core.allows(spec, range.Ilk)).toBe(false)
+		expect(Core.allows(spec, "etiketli")).toBe(false)
+		expect(Core.allows(spec, range.Ilk .. "/etiketli/x")).toBe(false)
+		expect(Core.allows(spec, range.Ilk .. "/")).toBe(false)
 		expect(Core.allows(spec, 20261120)).toBe(false)
+	end)
+
+	it("K-008: kohort tasiyan her olayda birlesik kohort alani var, ayri kaynak alani yok", function()
+		for _, event in Config.Olaylar do
+			expect(table.find(event.Alanlar, "kohort") ~= nil).toBe(true)
+			expect(table.find(event.Alanlar, "kaynak")).toBeNil()
+		end
 	end)
 end)
 
@@ -135,7 +157,7 @@ describe("Olcum cekirdegi -- gonderim", function()
 		local h = harness({ studio = true })
 		expect(h.core:log(1, "Cikis", 12, GOOD_EXIT)).toBe(true)
 		expect(#h.sent).toBe(0)
-		expect(h.lines[1]).toBe(Config.CiktiOneki .. " Cikis deger=12 kohort=2026-11-20 kaynak=etiketsiz oturum_tipi=donus")
+		expect(h.lines[1]).toBe(Config.CiktiOneki .. " Cikis deger=12 kohort=2026-11-20/etiketsiz oturum_tipi=donus faz=lobi")
 	end)
 
 	it("kapatma anahtari her seyi durdurur", function()
