@@ -9,6 +9,7 @@ local Net = require(Shared.Net)
 local Session = require(Shared.Drawing.Session)
 local Pointer = require(Shared.Drawing.Pointer)
 local StrokeCodec = require(Shared.Drawing.StrokeCodec)
+local Countdown = require(Shared.Round.Countdown)
 local CanvasView = require(script.Parent.CanvasView)
 
 local DrawingScreen = {}
@@ -168,11 +169,10 @@ function DrawingScreen:open(payload, localName)
 	self.view:clear()
 	self:_selectTool()
 
-	if payload.subjectUserId == game.Players.LocalPlayer.UserId then
-		refs.cizim_baslik.Text = Terms.DrawSelf
-	else
-		refs.cizim_baslik.Text = string.format(Terms.DrawOther, payload.subjectName)
-	end
+	local title = Countdown.title(payload, game.Players.LocalPlayer.UserId, Terms)
+	refs.cizim_baslik.Text = title
+	refs.cizim_sayim_yazi.Text = title
+	refs.cizim_sayim_kutu.Visible = false
 
 	self.visibility:HideExcept({ refs.cizim_ekran, refs.gecis_ekran })
 	refs.cizim_ekran.Enabled = true
@@ -181,10 +181,17 @@ function DrawingScreen:open(payload, localName)
 	task.spawn(function()
 		while self.token == token and not self.submitted do
 			local now = workspace:GetServerTimeNow()
+			local countdown = Countdown.at(payload, now, Round.CountdownSeconds)
+			refs.cizim_sayim_kutu.Visible = countdown.show
+			if countdown.digit then
+				refs.cizim_sayim.Text = string.format(Terms.CountdownDigit, countdown.digit)
+			end
 			if now >= payload.startsAt then
-				self.session:setEnabled(true)
 				local remaining = math.max(0, math.ceil(payload.endsAt - now))
 				refs.cizim_sure.Text = string.format(Terms.TimerText, remaining)
+			end
+			if countdown.canDraw then
+				self.session:setEnabled(true)
 				local strokes = #self.session:getStrokes()
 				if strokes ~= sentStrokes and now - sentAt >= Round.ProgressSendSeconds then
 					sentStrokes, sentAt = strokes, now

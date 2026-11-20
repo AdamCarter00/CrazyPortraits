@@ -15,6 +15,7 @@ return table.freeze({
 	TimerText = "Time Left: %d",
 	DrawSelf = "Draw yourself",
 	DrawOther = "Draw %s",
+	CountdownDigit = "%d",
 
 	LoadingSteps = table.freeze({ "Draw the player", "Make it funny, not pretty", "Collect reactions" }),
 

@@ -58,6 +58,7 @@ local function drawingPayload(state)
 		subjectUserId = round.subject.id,
 		subjectName = round.subject.name,
 		startsAt = round.startsAt,
+		countdownEndsAt = round.countdownEndsAt,
 		endsAt = round.endsAt,
 		participants = table.clone(round.participantOrder),
 	}
@@ -220,6 +221,7 @@ local function startRound(state, now: number, out: { Effect })
 		names = {},
 		drawings = {},
 		startsAt = startsAt,
+		countdownEndsAt = if state.config.CountdownInDraw then startsAt + state.config.CountdownSeconds else startsAt,
 		endsAt = startsAt + state.config.DrawSeconds,
 		votes = {},
 	}

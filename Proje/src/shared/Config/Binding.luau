@@ -16,6 +16,9 @@ return table.freeze({
 		table.freeze({ mark = "arac_silgi", class = "GuiButton", selectable = true, group = "cizim" }),
 		table.freeze({ mark = "arac_kova", class = "GuiButton", selectable = true, group = "cizim" }),
 		table.freeze({ mark = "arac_geri", class = "GuiButton", group = "cizim" }),
+		table.freeze({ mark = "cizim_sayim_kutu", class = "GuiObject", group = "cizim" }),
+		table.freeze({ mark = "cizim_sayim", class = "TextLabel", group = "cizim" }),
+		table.freeze({ mark = "cizim_sayim_yazi", class = "TextLabel", group = "cizim" }),
 
 		table.freeze({ mark = "asama_ekran", class = "ScreenGui", group = "asama" }),
 		table.freeze({ mark = "asama_ana", class = "TextLabel", group = "asama" }),

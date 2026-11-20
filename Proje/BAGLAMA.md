@@ -28,6 +28,9 @@ Kod nesne yaratmaz, yalnız içerik, görünürlük ve davranış yazar. "Kod ya
 | `arac_silgi` | GuiButton | Silgi, seçilebilir | 3 |
 | `arac_kova` | GuiButton | Kova doldurma, seçilebilir | 3 |
 | `arac_geri` | GuiButton | Geri al | 3 |
+| `cizim_sayim_kutu` | GuiObject | Tuvalin üstünde sayım katmanı (T-022); kod yalnız `Visible` yazar, sayım bitince kapanır | 3 |
+| `cizim_sayim` | TextLabel | 3-2-1 sayısı (T-022); `cizim_sayim_kutu`'nun içinde | 3 |
+| `cizim_sayim_yazi` | TextLabel | "Draw [model adı]" (modelin kendisine "Draw yourself"), `Config.Terms` (T-022); `cizim_sayim_kutu`'nun içinde | 3 |
 | `firca_1` `firca_2` `firca_3` | GuiButton | Fırça boyları, `Config.Drawing.BrushSizes` sırasıyla, seçilebilir | 3 |
 | `renk_siyah` `renk_beyaz` `renk_gri` `renk_ten` `renk_kirmizi` `renk_turuncu` `renk_sari` `renk_yesil` `renk_turkuaz` `renk_mavi` `renk_mor` `renk_pembe` `renk_kahve` `renk_koyu_yesil` `renk_lacivert` `renk_bordo` | GuiButton | Palet; renk değeri `Config.Drawing.Colors`'tan, seçilebilir | 3 |
 

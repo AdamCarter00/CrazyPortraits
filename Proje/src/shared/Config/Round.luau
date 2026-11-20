@@ -5,6 +5,8 @@ return table.freeze({
 	MinPlayers = 2,
 	LobbyCountdownSeconds = 15,
 	TransitionSeconds = 3,
+	CountdownSeconds = 3,
+	CountdownInDraw = false,
 	DrawSeconds = 140,
 	CollectTimeoutSeconds = 7,
 	RevealSecondsPerDrawing = 5,
