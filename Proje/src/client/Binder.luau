@@ -23,9 +23,7 @@ function Binder.expected()
 		table.insert(list, { mark = "yukleme_adim_" .. index, class = "TextLabel", group = "yukleme" })
 	end
 	for _, name in Round.Emojis do
-		table.insert(list, { mark = "emoji_" .. name, class = "GuiButton", selectable = true, group = "emoji" })
-		table.insert(list, { mark = "emoji_sayi_" .. name, class = "TextLabel", group = "emoji" })
-	end
+		table.insert(list, { mark = "emoji_" .. name, class = "GuiButton", selectable = true, group = "emoji" })	end
 	for slot = 1, Round.PodiumSize do
 		table.insert(list, { mark = "podyum_yuva_" .. slot, class = "Frame", group = "podyum" })
 		table.insert(list, { mark = "podyum_tuval_" .. slot, class = "ImageLabel", group = "podyum" })

@@ -107,11 +107,6 @@ local function score(state, reactions): number
 	return total
 end
 
-local function tallyPayload(state, entry)
-	local reactions = tally(state, entry)
-	return { drawingId = entry.drawingId, reactions = reactions, score = score(state, reactions) }
-end
-
 local function podiumPayload(state)
 	local round = state.round
 	local ranked = {}
@@ -155,7 +150,6 @@ local function snapshot(state, out: { Effect }, to: number)
 		emit(out, to, "Drawing", drawingPayload(state))
 	elseif phase == "Reveal" then
 		emit(out, to, "Reveal", revealPayload(state))
-		emit(out, to, "Tally", tallyPayload(state, currentReveal(state)))
 	elseif phase == "Podium" then
 		emit(out, to, "Podium", podiumPayload(state))
 	end
@@ -378,7 +372,6 @@ function Machine.vote(state, id: number, drawingId: string, emoji: string, now: 
 	end
 	votes[id] = emoji
 	emit(out, id, "VoteAccepted", { drawingId = drawingId, emoji = emoji })
-	emit(out, "all", "Tally", tallyPayload(state, entry))
 	return out
 end
 

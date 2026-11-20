@@ -73,10 +73,7 @@ Kod nesne yaratmaz, yalnız içerik, görünürlük ve davranış yazar. "Kod ya
 | İşaret | Sınıf | Not | İş |
 |---|---|---|---|
 | `emoji_ekran` | ScreenGui | Reveal'da görünen emoji şeridi | 5 |
-| `emoji_toplam` | TextLabel | Gösterilen çizimin canlı toplam tepkisi, herkese (K-006); nötr emoji ve sahibinin kendi oyu hariç | 5 |
 | `emoji_laugh` `emoji_skull` `emoji_shocked` `emoji_normal` | GuiButton | `Config.Round.Emojis` sırasıyla, seçilebilir (seçili emoji belirgin); en az 44 pt | 5 |
-| `emoji_sayi_laugh` `emoji_sayi_skull` `emoji_sayi_shocked` `emoji_sayi_normal` | TextLabel | Düğmenin yanında o emojinin canlı sayısı (sahibinin oyu hariç); düğmenin çocuğu olabilir | 5 |
-
 ## Podyum (T-007)
 
 | İşaret | Sınıf | Not | İş |

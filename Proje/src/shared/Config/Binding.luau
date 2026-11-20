@@ -39,8 +39,6 @@ return table.freeze({
 		table.freeze({ mark = "reveal_sure", class = "Frame", group = "reveal" }),
 
 		table.freeze({ mark = "emoji_ekran", class = "ScreenGui", group = "emoji" }),
-		table.freeze({ mark = "emoji_toplam", class = "TextLabel", group = "emoji" }),
-
 		table.freeze({ mark = "podyum_ekran", class = "ScreenGui", group = "podyum" }),
 	}),
 

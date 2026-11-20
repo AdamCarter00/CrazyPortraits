@@ -32,7 +32,6 @@ Schema.Messages = table.freeze({
 		},
 	},
 	VoteAccepted = { channel = "Round", fields = { drawingId = "string", emoji = "string" } },
-	Tally = { channel = "Round", fields = { drawingId = "string", reactions = "table", score = "number" } },
 	Podium = { channel = "Round", fields = { roundId = "number", entries = "table", endsAt = "number" } },
 
 	AdminAck = { channel = "Admin", fields = { command = "string" } },
