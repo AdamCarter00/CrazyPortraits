@@ -4,7 +4,7 @@ export type Effect = { to: any, name: string, payload: { [string]: any } }
 
 export type Deps = {
 	config: any,
-	pickSubject: (candidates: { number }, state: any) -> number,
+	random: () -> number,
 }
 
 local Machine = {}
@@ -21,6 +21,8 @@ function Machine.new(deps: Deps)
 		players = {},
 		pendingReady = {},
 		joinCounter = 0,
+		missed = {},
+		lastSubjectId = nil :: number?,
 		roundCounter = 0,
 		countdownEndsAt = nil :: number?,
 		round = nil :: any,
@@ -95,15 +97,41 @@ local function tally(state, entry)
 	return reactions
 end
 
+local function score(state, reactions): number
+	local total = 0
+	for emoji, count in reactions do
+		if table.find(state.config.NeutralEmojis, emoji) == nil then
+			total += count
+		end
+	end
+	return total
+end
+
 local function podiumPayload(state)
 	local round = state.round
+	local ranked = {}
+	for order, entry in round.reveal.list do
+		local reactions = tally(state, entry)
+		table.insert(ranked, { entry = entry, reactions = reactions, score = score(state, reactions), order = order })
+	end
+	table.sort(ranked, function(a, b)
+		if a.score ~= b.score then
+			return a.score > b.score
+		end
+		return a.order < b.order
+	end)
 	local entries = {}
-	for _, entry in round.reveal.list do
+	for rank, item in ranked do
+		if rank > state.config.PodiumSize then
+			break
+		end
 		table.insert(entries, {
-			drawingId = entry.drawingId,
-			ownerUserId = entry.ownerId,
-			ownerName = entry.ownerName,
-			reactions = tally(state, entry),
+			rank = rank,
+			drawingId = item.entry.drawingId,
+			ownerUserId = item.entry.ownerId,
+			ownerName = item.entry.ownerName,
+			reactions = item.reactions,
+			score = item.score,
 		})
 	end
 	return {
@@ -146,9 +174,36 @@ local function enterLobby(state, now: number, out: { Effect })
 	updateCountdown(state, now, out)
 end
 
+local function pickSubject(state, participants: { number }): number
+	local candidates = {}
+	local total = 0
+	for _, id in participants do
+		if id ~= state.lastSubjectId then
+			local weight = (state.missed[id] or 0) + 1
+			table.insert(candidates, { id = id, weight = weight })
+			total += weight
+		end
+	end
+	if #candidates == 0 then
+		return participants[1]
+	end
+	local roll = state.deps.random() * total
+	for _, candidate in candidates do
+		roll -= candidate.weight
+		if roll < 0 then
+			return candidate.id
+		end
+	end
+	return candidates[#candidates].id
+end
+
 local function startRound(state, now: number, out: { Effect })
 	local participants = readyIds(state)
-	local subjectId = state.deps.pickSubject(table.clone(participants), state)
+	local subjectId = pickSubject(state, participants)
+	for _, id in participants do
+		state.missed[id] = if id == subjectId then 0 else (state.missed[id] or 0) + 1
+	end
+	state.lastSubjectId = subjectId
 	state.roundCounter += 1
 	state.countdownEndsAt = nil
 	local startsAt = now + state.config.TransitionSeconds
@@ -250,6 +305,12 @@ function Machine.ready(state, id: number, now: number): { Effect }
 	if state.phase == "Lobby" then
 		updateCountdown(state, now, out)
 	else
+		if state.phase == "Drawing" and state.round.endsAt - now > state.config.MidJoinMinSeconds then
+			local round = state.round
+			table.insert(round.participantOrder, id)
+			round.awaiting[id] = true
+			round.names[id] = player.name
+		end
 		snapshot(state, out, id)
 	end
 	return out
@@ -262,6 +323,7 @@ function Machine.leave(state, id: number, now: number): { Effect }
 		return out
 	end
 	state.players[id] = nil
+	state.missed[id] = nil
 	if state.phase == "Lobby" then
 		updateCountdown(state, now, out)
 	elseif state.phase == "Drawing" or state.phase == "Collecting" then

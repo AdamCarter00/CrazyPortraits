@@ -66,3 +66,20 @@ describe("Mimari", function()
 		expect(bad).toEqual({})
 	end)
 end)
+
+describe("Para", function()
+	it("K-004: Kapi 1'de Yildiz verilmez, istemciye de gitmez", function()
+		local offenders = {}
+		for _, entry in SourceIndex do
+			local isWallet = string.find(entry.fsPath, "PlayerDataService", 1, true) ~= nil
+			if not isWallet and string.find(stripComments(entry.source), "AddStars") then
+				table.insert(offenders, entry.fsPath)
+			end
+		end
+		expect(offenders).toEqual({})
+		local Schema = require(Shared.Net.Schema)
+		for name in Schema.Messages do
+			expect(string.find(string.lower(name), "star")).toBeNil()
+		end
+	end)
+end)

@@ -8,8 +8,11 @@ return table.freeze({
 	DrawSeconds = 140,
 	CollectTimeoutSeconds = 7,
 	RevealSecondsPerDrawing = 5,
+	MidJoinMinSeconds = 60,
+	PodiumSize = 3,
 	PodiumSeconds = 8,
 	TickSeconds = 0.25,
 
 	Emojis = table.freeze({ "laugh", "skull", "shocked", "normal" }),
+	NeutralEmojis = table.freeze({ "normal" }),
 })

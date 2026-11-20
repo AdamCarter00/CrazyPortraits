@@ -9,7 +9,7 @@ local function firstCandidate(candidates)
 end
 
 local function newMachine()
-	return Machine.new({ config = RoundConfig, pickSubject = firstCandidate })
+	return Machine.new({ config = RoundConfig, random = function() return 0 end })
 end
 
 local function find(effects, name, to)
@@ -19,6 +19,16 @@ local function find(effects, name, to)
 		end
 	end
 	return nil
+end
+
+local function readyIds(state)
+	local list = {}
+	for id, p in state.players do
+		if p.ready then
+			table.insert(list, id)
+		end
+	end
+	return list
 end
 
 local function addReady(state, id, now)
@@ -154,8 +164,9 @@ describe("Tur -- cizim", function()
 
 	it("is-1: tura katilmayan teslim edemez, ikinci teslim yok sayilir", function()
 		local state, t = startedRound(2)
-		addReady(state, 9, t + 1)
-		Machine.submit(state, 9, drawing(), 5, t + 2)
+		local late = state.round.endsAt - RoundConfig.MidJoinMinSeconds
+		addReady(state, 9, late)
+		Machine.submit(state, 9, drawing(), 5, late + 1)
 		expect(state.round.drawings[9]).toBeNil()
 		Machine.submit(state, 1, drawing(), 2, t + 3)
 		Machine.submit(state, 1, drawing(), 7, t + 4)
@@ -324,5 +335,141 @@ describe("Tur -- istemciye giden veri", function()
 		local state, t = startedRound(2)
 		local out = Machine.submit(state, 1, drawing(), 2, t + 1)
 		expect(#out).toBe(0)
+	end)
+end)
+
+describe("Tur -- model secimi", function()
+	local function roundWith(count, random)
+		local state = Machine.new({ config = RoundConfig, random = random })
+		for id = 1, count do
+			addReady(state, id, 0)
+		end
+		Machine.tick(state, RoundConfig.LobbyCountdownSeconds)
+		return state
+	end
+
+	local function nextRound(state)
+		submitAll(state, state.round.participantOrder, 100)
+		Machine.tick(state, state.round.reveal.endsAt)
+		for _ = 1, #state.round.reveal.list do
+			Machine.tick(state, state.round.reveal.endsAt)
+		end
+		Machine.tick(state, state.round.podiumEndsAt)
+		local t = state.countdownEndsAt
+		Machine.tick(state, t)
+	end
+
+	it("K-001: bir onceki model aday olmaz; iki kisilikte sira katidir", function()
+		local state = roundWith(2, function()
+			return 0
+		end)
+		local first = state.round.subject.id
+		nextRound(state)
+		expect(state.round.subject.id).never.toBe(first)
+	end)
+
+	it("K-001: agirlik, secilmeden gecen tur sayisi + 1", function()
+		local state = roundWith(3, function()
+			return 0.999
+		end)
+		expect(state.round.subject.id).toBe(3)
+		expect(state.missed[3]).toBe(0)
+		expect(state.missed[1]).toBe(1)
+		local state2 = Machine.new({ config = RoundConfig, random = function() return 0.5 end })
+		state2.missed = { [1] = 0, [2] = 0, [3] = 8 }
+		for id = 1, 3 do
+			addReady(state2, id, 0)
+		end
+		Machine.tick(state2, RoundConfig.LobbyCountdownSeconds)
+		expect(state2.round.subject.id).toBe(3)
+	end)
+
+	it("K-001: secim tohumlu rastgele ile tekrarlanir", function()
+		local function run()
+			local seed = 7
+			local state = roundWith(4, function()
+				seed = (seed * 1103515245 + 12345) % 2147483648
+				return seed / 2147483648
+			end)
+			return state.round.subject.id
+		end
+		expect(run()).toBe(run())
+	end)
+end)
+
+describe("Tur -- cizim sirasinda giris", function()
+	it("K-002: yeterli sure varsa giren o turda cizer", function()
+		local state, t = startedRound(2)
+		Machine.join(state, 5, "P5", t + 1)
+		local out = Machine.ready(state, 5, t + 1)
+		expect(find(out, "Drawing", 5)).toBeTruthy()
+		expect(state.round.awaiting[5]).toBe(true)
+		submitAll(state, { 1, 2 }, t + 5)
+		expect(state.phase).toBe("Drawing")
+		Machine.submit(state, 5, drawing(), 1, t + 6)
+		expect(state.phase).toBe("Reveal")
+	end)
+
+	it("K-002: sure yetmiyorsa izler ve sonraki tura girer", function()
+		local state, t = startedRound(2)
+		local late = state.round.endsAt - RoundConfig.MidJoinMinSeconds
+		addReady(state, 5, late)
+		expect(state.round.awaiting[5]).toBeNil()
+		submitAll(state, { 1, 2 }, late + 1)
+		Machine.tick(state, state.round.reveal.endsAt)
+		Machine.tick(state, state.round.reveal.endsAt)
+		Machine.tick(state, state.round.podiumEndsAt)
+		expect(state.countdownEndsAt).toBeTruthy()
+		expect(#readyIds(state)).toBe(3)
+	end)
+end)
+
+describe("Tur -- podyum", function()
+	local function podiumAfter(count, votes)
+		local state, t = startedRound(count)
+		local ids = {}
+		for id = 1, count do
+			table.insert(ids, id)
+		end
+		submitAll(state, ids, t + 1)
+		local list = state.round.reveal.list
+		local out
+		for index = 1, count do
+			for _, vote in votes[index] or {} do
+				Machine.vote(state, vote[1], list[index].drawingId, vote[2], state.round.reveal.startsAt)
+			end
+			out = Machine.tick(state, state.round.reveal.endsAt)
+		end
+		return find(out, "Podium", "all").payload
+	end
+
+	it("K-003: toplam tepkiyle siralanir, notr emoji sayilmaz", function()
+		local podium = podiumAfter(4, {
+			[1] = { { 2, "normal" }, { 3, "normal" }, { 4, "normal" } },
+			[2] = { { 1, "laugh" } },
+			[3] = { { 1, "skull" }, { 2, "shocked" }, { 4, "laugh" } },
+		})
+		expect(podium.entries[1].ownerUserId).toBe(3)
+		expect(podium.entries[1].score).toBe(3)
+		expect(podium.entries[2].ownerUserId).toBe(2)
+		expect(podium.entries[3].score).toBe(0)
+	end)
+
+	it("K-003: ilk 3 gosterilir, esitlikte once gosterilen one gecer", function()
+		local podium = podiumAfter(4, {})
+		expect(#podium.entries).toBe(3)
+		expect(podium.entries[1].ownerUserId).toBe(1)
+		expect(podium.entries[3].ownerUserId).toBe(3)
+		expect(podium.entries[1].rank).toBe(1)
+	end)
+
+	it("T-007: iki kisilik masada iki cizim yan yana", function()
+		local podium = podiumAfter(2, {})
+		expect(#podium.entries).toBe(2)
+	end)
+
+	it("K-003: sahibinin kendi emojisi siralamayi etkilemez", function()
+		local podium = podiumAfter(3, { [1] = { { 1, "laugh" }, { 1, "laugh" } }, [2] = { { 1, "laugh" } } })
+		expect(podium.entries[1].ownerUserId).toBe(2)
 	end)
 end)

@@ -49,8 +49,14 @@ local function onVote(player: Player, payload: any)
 	apply(Machine.vote(state, player.UserId, payload.drawingId, payload.emoji, now()))
 end
 
-function RoundService.start(pickSubject: (candidates: { number }, state: any) -> number)
-	state = Machine.new({ config = RoundConfig, pickSubject = pickSubject })
+function RoundService.start()
+	local rng = Random.new()
+	state = Machine.new({
+		config = RoundConfig,
+		random = function()
+			return rng:NextNumber()
+		end,
+	})
 
 	Net.onServerEvent("Round", function(player, name, payload)
 		if name == "Ready" then

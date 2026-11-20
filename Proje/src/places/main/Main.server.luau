@@ -27,6 +27,7 @@ end)
 startup("AdminCommandRouter", AdminCommandRouter.connect)
 startup("AdminChatHook", AdminChatHook.connect)
 startup("DrawingsChatHook", DrawingsChatHook.connect)
+startup("RoundService", RoundService.start)
 
 local function onPlayerAdded(player: Player)
 	local banEntry = BanService.isBanned(player.UserId)
