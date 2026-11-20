@@ -53,7 +53,17 @@ describe("Yukleme", function()
 		expect(Screen.barText("loading", Terms)).toBe("Loading...")
 		expect(Screen.barText("ready", Terms)).toBe(Terms.Loading)
 		expect(Screen.barText("failed", Terms)).toBe(Terms.DataLoadFailed)
+		expect(Terms.DataLoadFailed).toBe("OOPS! PLEASE REJOIN")
 		expect(Screen.shouldClose("failed", true, 1e6, Loading.MinSeconds)).toBe(false)
+	end)
+
+	it("T-025: hata yazisi Config rengindedir; hata disinda yazi kendi rengine ve Loading... metnine doner", function()
+		expect(Loading.FailedTextColor).toBe("#FF0000")
+		expect(Screen.barColor("failed", Loading.FailedTextColor)).toBe("#FF0000")
+		for _, status in { "loading", "ready" } do
+			expect(Screen.barColor(status, Loading.FailedTextColor)).toBeNil()
+			expect(Screen.barText(status, Terms)).toBe("Loading...")
+		end
 	end)
 
 	it("K-012: dolgu dolmaz; en soldan baslar, saga gider, geri doner", function()

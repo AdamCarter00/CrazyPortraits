@@ -12,6 +12,11 @@ function Screen.barText(status: Status, terms: { Loading: string, DataLoadFailed
 	return if status == "failed" then terms.DataLoadFailed else terms.Loading
 end
 
+-- nil: yazi Studio'daki kendi rengini korur.
+function Screen.barColor(status: Status, failedColor: string): string?
+	return if status == "failed" then failedColor else nil
+end
+
 -- Dolgunun Position.X.Scale'i: sol kenari cubugun solundan sagina gidip doner. Negatif genislikli dolgu
 -- konumunun soluna cizilir; gorunen sol kenar Position + min(0, Size) olur.
 function Screen.fillPosition(elapsed: number, cycleSeconds: number, sizeScale: number): number

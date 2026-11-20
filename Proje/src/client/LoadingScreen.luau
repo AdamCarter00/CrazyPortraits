@@ -15,6 +15,7 @@ function LoadingScreen.new(refs)
 		status = "loading",
 		startedAt = os.clock(),
 		fillSize = refs.yukleme_cubuk_dolgu.Size.X.Scale,
+		textColor = refs.yukleme_cubuk_yazi.TextColor3,
 	}, LoadingScreen)
 	refs.yukleme_ekran.Enabled = true
 	self:step()
@@ -35,6 +36,8 @@ function LoadingScreen:step()
 	local elapsed = os.clock() - self.startedAt
 	refs.yukleme_ipucu.Text = Terms.LoadingTips[Screen.tipIndex(elapsed, #Terms.LoadingTips, Loading.TipSeconds)]
 	refs.yukleme_cubuk_yazi.Text = Screen.barText(self.status, Terms)
+	local color = Screen.barColor(self.status, Loading.FailedTextColor)
+	refs.yukleme_cubuk_yazi.TextColor3 = if color then Color3.fromHex(color) else self.textColor
 	if Screen.fillMoves(self.status) then
 		local fill = refs.yukleme_cubuk_dolgu
 		local x = Screen.fillPosition(elapsed, Loading.BarCycleSeconds, self.fillSize)

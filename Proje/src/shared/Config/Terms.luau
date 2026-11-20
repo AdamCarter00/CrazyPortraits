@@ -26,7 +26,7 @@ return table.freeze({
 
 	BanTimed ="You are suspended for %d more hour(s).",
 	BanPermanent = "You are permanently suspended.",
-	DataLoadFailed = "Data could not be loaded, please rejoin.",
+	DataLoadFailed = "OOPS! PLEASE REJOIN",
 
 	-- Faz -> gecis perdesinde gorunen asama adi; ayni ada dusen fazlar perdeyi yeniden acmaz.
 	PhaseLabels = table.freeze({
