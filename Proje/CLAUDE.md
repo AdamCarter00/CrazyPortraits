@@ -111,7 +111,7 @@ kararın gerekçesi, not numarası yoruma yazılmaz. Kararın izi: test adı not
 ## Yedek
 
 Git kökü bu deponun üstündeki oyun klasörüdür (`Oyunlar\<ad>\`): `Proje`, `rapor` ve `Icerikler` birlikte yedeklenir.
-Her iş sonunda commit'ten sonra push. Origin: {github adresi}.
+Her iş sonunda commit'ten sonra push. Origin: https://github.com/AdamCarter00/CrazyPortraits.git.
 
 ## Rapor klasörü
 
