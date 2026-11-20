@@ -130,6 +130,7 @@ local function podiumPayload(state)
 			drawingId = item.entry.drawingId,
 			ownerUserId = item.entry.ownerId,
 			ownerName = item.entry.ownerName,
+			drawing = item.entry.data,
 			reactions = item.reactions,
 			score = item.score,
 		})

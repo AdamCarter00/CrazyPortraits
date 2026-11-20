@@ -3,6 +3,8 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Binding = require(Shared.Config.Binding)
 local Drawing = require(Shared.Config.Drawing)
+local Round = require(Shared.Config.Round)
+local Terms = require(Shared.Config.Terms)
 
 local Binder = {}
 
@@ -12,17 +14,31 @@ function Binder.expected()
 		table.insert(list, entry)
 	end
 	for _, color in Drawing.Colors do
-		table.insert(list, { mark = color.mark, class = "GuiButton", selectable = true })
+		table.insert(list, { mark = color.mark, class = "GuiButton", selectable = true, group = "cizim" })
 	end
 	for _, mark in Drawing.BrushMarks do
-		table.insert(list, { mark = mark, class = "GuiButton", selectable = true })
+		table.insert(list, { mark = mark, class = "GuiButton", selectable = true, group = "cizim" })
+	end
+	for index in Terms.LoadingSteps do
+		table.insert(list, { mark = "yukleme_adim_" .. index, class = "TextLabel", group = "yukleme" })
+	end
+	for _, name in Round.Emojis do
+		table.insert(list, { mark = "emoji_" .. name, class = "GuiButton", selectable = true, group = "emoji" })
+	end
+	for slot = 1, Round.PodiumSize do
+		table.insert(list, { mark = "podyum_yuva_" .. slot, class = "Frame", group = "podyum" })
+		table.insert(list, { mark = "podyum_tuval_" .. slot, class = "ImageLabel", group = "podyum" })
+		table.insert(list, { mark = "podyum_ad_" .. slot, class = "TextLabel", group = "podyum" })
+		table.insert(list, { mark = "podyum_tepki_" .. slot, class = "TextLabel", group = "podyum" })
 	end
 	return list
 end
 
--- Kod eksik nesne yaratmaz: eksik, cift ya da yanlis sinif varsa bepsini Output'a listeler ve hata verir.
-function Binder.collect(root, expected, report)
-	report = report or warn
+function Binder.expectedWorld()
+	return table.clone(Binding.WorldMarks)
+end
+
+function Binder.tryCollect(root, expected)
 	local found = {}
 	for _, inst in root:GetDescendants() do
 		local mark = inst:GetAttribute(Binding.MarkerAttribute)
@@ -61,6 +77,13 @@ function Binder.collect(root, expected, report)
 		end
 	end
 
+	return bound, selected, problems
+end
+
+-- Kod eksik nesne yaratmaz; eksik, cift ya da yanlis sinif varsa hepsini listeler ve hata verir.
+function Binder.collect(root, expected, report)
+	report = report or warn
+	local bound, selected, problems = Binder.tryCollect(root, expected)
 	if #problems > 0 then
 		for _, problem in problems do
 			report("[Binder] " .. problem)
@@ -68,6 +91,19 @@ function Binder.collect(root, expected, report)
 		error(("Binder: %d baglama sorunu (ayrinti yukarida)"):format(#problems), 2)
 	end
 	return bound, selected
+end
+
+-- PlayerGui, StarterGui'den istemci script'i basladiktan sonra dolar: baglama tamamlanana ya da sure bitene kadar beklenir.
+function Binder.bind(root, expected, timeoutSeconds)
+	local deadline = os.clock() + timeoutSeconds
+	while os.clock() < deadline do
+		local bound, selected, problems = Binder.tryCollect(root, expected)
+		if #problems == 0 then
+			return bound, selected
+		end
+		task.wait(0.1)
+	end
+	return Binder.collect(root, expected)
 end
 
 return Binder

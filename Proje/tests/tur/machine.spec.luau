@@ -8,8 +8,11 @@ local function firstCandidate(candidates)
 	return candidates[1]
 end
 
+local TestConfig = table.clone(RoundConfig)
+TestConfig.MinPlayers = 2
+
 local function newMachine()
-	return Machine.new({ config = RoundConfig, random = function() return 0 end })
+	return Machine.new({ config = TestConfig, random = function() return 0 end })
 end
 
 local function find(effects, name, to)
@@ -466,6 +469,29 @@ describe("Tur -- podyum", function()
 	it("T-007: iki kisilik masada iki cizim yan yana", function()
 		local podium = podiumAfter(2, {})
 		expect(#podium.entries).toBe(2)
+	end)
+
+	it("T-007: podyum girisleri cizimi tasir; yalniz gosterilmis ilk 3 cizim gider", function()
+		local podium = podiumAfter(5, {})
+		expect(#podium.entries).toBe(3)
+		for _, entry in podium.entries do
+			expect(type(entry.drawing)).toBe("buffer")
+		end
+		Schema.shape("Podium", podium)
+	end)
+
+	it("T-009: podyum sirasinda giren, podyumu cizimleriyle birlikte gorur", function()
+		local state, t = startedRound(3)
+		submitAll(state, { 1, 2, 3 }, t + 1)
+		for _ = 1, 3 do
+			Machine.tick(state, state.round.reveal.endsAt)
+		end
+		expect(state.phase).toBe("Podium")
+		Machine.join(state, 9, "P9", state.round.podiumEndsAt - 1)
+		local out = Machine.ready(state, 9, state.round.podiumEndsAt - 1)
+		local snapshot = find(out, "Podium", 9)
+		expect(snapshot).toBeTruthy()
+		expect(type(snapshot.payload.entries[1].drawing)).toBe("buffer")
 	end)
 
 	it("K-003: sahibinin kendi emojisi siralamayi etkilemez", function()

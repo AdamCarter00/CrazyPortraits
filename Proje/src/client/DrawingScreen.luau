@@ -50,30 +50,30 @@ function DrawingScreen:_selectTool()
 end
 
 function DrawingScreen:_bindButtons()
-	local refs, session = self.refs, self.session
+	local refs = self.refs
 	for index, color in Drawing.Colors do
 		refs[color.mark].Activated:Connect(function()
-			session:selectColor(index)
+			self.session:selectColor(index)
 			self:_selectTool()
 		end)
 	end
 	for index, mark in Drawing.BrushMarks do
 		refs[mark].Activated:Connect(function()
-			session:selectSize(index)
+			self.session:selectSize(index)
 			self:_selectTool()
 		end)
 	end
 	refs.arac_silgi.Activated:Connect(function()
-		session:selectEraser()
+		self.session:selectEraser()
 		self:_selectTool()
 	end)
 	refs.arac_kova.Activated:Connect(function()
-		session:selectFill()
+		self.session:selectFill()
 		self:_selectTool()
 	end)
 	refs.arac_geri.Activated:Connect(function()
-		if session:undo() then
-			self.view:redraw(session.strokes)
+		if self.session:undo() then
+			self.view:redraw(self.session.strokes)
 		end
 	end)
 	refs.cizim_gonder.Activated:Connect(function()
@@ -154,13 +154,16 @@ function DrawingScreen:open(payload, localName)
 		return
 	end
 	self.roundId = payload.roundId
+	if self.onOpened then
+		self.onOpened()
+	end
 	self.submitted = false
 	self.token += 1
 	local token = self.token
 	local refs = self.refs
 
-	self.session = Session.new()
-	self.pointer = Pointer.new()
+	self.session:reset()
+	self.pointer:cancel()
 	self.view:clear()
 	self:_selectTool()
 
@@ -196,6 +199,9 @@ function DrawingScreen:submit()
 	self.session:setEnabled(false)
 	Net.fireServer("Round", "Submit", { drawing = StrokeCodec.encode(self.session:getStrokes()) })
 	self:_hide()
+	if self.onSubmitted then
+		self.onSubmitted()
+	end
 end
 
 function DrawingScreen:_hide()

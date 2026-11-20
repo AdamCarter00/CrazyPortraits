@@ -39,7 +39,7 @@ Saf durum makinesi + zamanlayıcı + yan etki katmanı; Lune testleriyle.
 - Çizenin adı, "3 / 6", 5 sn süre çubuğu, açılış sesi, çizimler arası kısa geçiş (8).
 - **Neden:** oyunun ödül anı bugün ekranın %45'inde, sıkışık, soluk, sessiz. Yatırımın asıl yeri.
 
-## 5 · Oy ve podyum (Gün 3)
+## 5 · Oy ve podyum (Gün 3) — SUNUCU TARAFI BİTTİ 2026-11-20 (sıralama, podyum + çizimleri; canlı toplam K-006 bekliyor; istemci ekranı arayüz bitince)
 - Seçili emoji belirgin; sunucu onayı; çizim başına canlı toplam (10).
 - Tur sonu podyumu: ilk 3 çizim + isim + tepki; 2 kişide yan yana; bonus yok (11).
 - Sahibin kendi çizimine emoji basması **kalır** (kasıtlı: ilk tepkiyi başlatsın, puan yok).
@@ -64,7 +64,7 @@ Saf durum makinesi + zamanlayıcı + yan etki katmanı; Lune testleriyle.
 - Sabit 5 sn bekleme yok; hata olursa yeniden deneme.
 - **Neden:** yeni oyuncuya verilen ilk talimat bugün yanlış (olmayan tema).
 
-## 9 · Kapatılacaklar (Gün 5, kısa)
+## 9 · Kapatılacaklar (Gün 5, kısa) — KOD KISMI 2026-11-20 (satış/market/Be Next Drawn kodda yok, test zorlar; kalıcı alanlar BORC.md; tabela ve arayüz Adam)
 - Market kapanır, çerçeve satışı durur [Adam].
 - Be Next Drawn duraklatılır (satıştan kalkar) [Adam] (20).
 - "Theme: …" yazan süs tabelaları; ölü kod (kopya admin istemcileri, tema sistemi, `dailyMissions`).

@@ -8,18 +8,23 @@ local Session = {}
 Session.__index = Session
 
 function Session.new()
-	return setmetatable({
-		tool = "brush",
-		colorIndex = Drawing.DefaultColorIndex,
-		sizeIndex = Drawing.DefaultBrushIndex,
-		enabled = false,
-		strokes = {},
-		undoStack = {},
-		current = nil,
-		totalPixels = 0,
-		strokesStarted = 0,
-		undoCount = 0,
-	}, Session)
+	local self = setmetatable({}, Session)
+	self:reset()
+	return self
+end
+
+-- Dugmeler oturum nesnesine bagli kalir: yeni tur yeni nesne degil, reset ile baslar.
+function Session:reset()
+	self.tool = "brush"
+	self.colorIndex = Drawing.DefaultColorIndex
+	self.sizeIndex = Drawing.DefaultBrushIndex
+	self.enabled = false
+	self.strokes = {}
+	self.undoStack = {}
+	self.current = nil
+	self.totalPixels = 0
+	self.strokesStarted = 0
+	self.undoCount = 0
 end
 
 local function makeStroke(self, isFill: boolean)

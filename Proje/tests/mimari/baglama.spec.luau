@@ -49,6 +49,15 @@ describe("Arayuz -- Binder", function()
 		expect(selected.renk_siyah).toBeTruthy()
 	end)
 
+	it("is-3: tryCollect sorunlari firlatmadan listeler; PlayerGui bos ise hepsi eksik gorunur", function()
+		local expected = Binder.expected()
+		local empty = { GetDescendants = function() return {} end }
+		local _, _, problems = Binder.tryCollect(empty, expected)
+		expect(#problems).toBe(#expected)
+		local _, _, ok = Binder.tryCollect(worldFor(expected), expected)
+		expect(#ok).toBe(0)
+	end)
+
 	it("is-3: eksik, cift ve yanlis sinif hata verir; hicbir nesne yaratilmaz", function()
 		local expected = Binder.expected()
 		local world = worldFor(expected, { cizim_sure = "yok", cizim_tuval = "Frame" })
