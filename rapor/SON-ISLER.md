@@ -4,6 +4,8 @@ Claude Code'un her işinin tek satırlık kaydı. En yeni en üstte. Danışman 
 imleçten itibaren okur.
 Biçim: `- YYYY-AA-GG · iş · kasa: notlar · commit: kısa hash · rapor: yol · kasaya işlenecek: …` (boş alan "—").
 
+- 2026-11-20 · Studio'da StarterGui'ye 8 boş ScreenGui kuruldu (yukleme, lobi, asama, gecis, cizim, reveal, emoji, podyum; ResetOnSpawn kapalı, DisplayOrder ve güvenli alan ayarlı, içleri ve işaretleri Adam doldurur); StarterGui.ScreenOrientation Sensor → LandscapeSensor (T-014); place kaydedilmedi · kasa: T-014, T-015 · commit: — · rapor: — · kasaya işlenecek: —
+
 - 2026-11-20 · T-023 yeni palet: çıkan renklerin StrokeCodec indeksi yenilere verildi (kahve → koyu kahve 110,68,40 · koyu yeşil → orta ten 198,134,90 · bordo → sarışın 250,226,140), kalan 13 rengin indeksi ve StrokeCodec aynı; işaretler renk_koyu_kahve, renk_orta_ten, renk_sarisin eklendi, renk_kahve, renk_koyu_yesil, renk_bordo kalktı, renk_ten açık ten; BAGLAMA güncellendi, palet testleri (T-023) eklendi · kasa: T-023 · commit: f8ad8bd · rapor: — · kasaya işlenecek: T-023 uygulandı (işaretlendi) · eski F-001 çizimlerinde (ReportedDrawings_v1, FirstTimerDrawings_v1) kahve, koyu yeşil ve bordo çizgiler yeni renklerle görünür, Adam kabul etti · paletin ekrandaki sırası Config'ten değil arayüz yerleşiminden gelir
 
 - 2026-11-20 · Yeni arayüz için GUI yapısı incelendi (BAGLAMA'daki 8 ScreenGui kasaya yetiyor); eski 9 ScreenGui Studio'da StarterGui'den ServerStorage.EskiArayuz'a taşındı (Voices ses klasörü yerinde), place kaydedilmedi; T-023 palet işi kayıtlı F-001 çizimleri yüzünden Adam'ın A/B cevabını bekliyor · kasa: T-004, T-014, T-015, T-018, T-020, T-022, T-023, T-024, K-006, K-007 · commit: — · rapor: — · kasaya işlenecek: —
