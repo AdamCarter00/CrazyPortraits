@@ -12,6 +12,8 @@ return table.freeze({
 	PodiumSize = 3,
 	PodiumSeconds = 8,
 	TickSeconds = 0.25,
+	ProgressSendSeconds = 2,
+	ProgressAcceptSeconds = 1,
 
 	Emojis = table.freeze({ "laugh", "skull", "shocked", "normal" }),
 	NeutralEmojis = table.freeze({ "normal" }),

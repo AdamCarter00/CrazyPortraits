@@ -3,6 +3,7 @@ local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Drawing = require(Shared.Config.Drawing)
+local Round = require(Shared.Config.Round)
 local Terms = require(Shared.Config.Terms)
 local Net = require(Shared.Net)
 local Session = require(Shared.Drawing.Session)
@@ -176,6 +177,7 @@ function DrawingScreen:open(payload, localName)
 	self.visibility:HideExcept({ refs.cizim_ekran, refs.gecis_ekran })
 	refs.cizim_ekran.Enabled = true
 
+	local sentStrokes, sentAt = 0, -math.huge
 	task.spawn(function()
 		while self.token == token and not self.submitted do
 			local now = workspace:GetServerTimeNow()
@@ -183,6 +185,11 @@ function DrawingScreen:open(payload, localName)
 				self.session:setEnabled(true)
 				local remaining = math.max(0, math.ceil(payload.endsAt - now))
 				refs.cizim_sure.Text = string.format(Terms.TimerText, remaining)
+				local strokes = #self.session:getStrokes()
+				if strokes ~= sentStrokes and now - sentAt >= Round.ProgressSendSeconds then
+					sentStrokes, sentAt = strokes, now
+					Net.fireServer("Round", "Progress", { strokes = strokes })
+				end
 			end
 			task.wait(0.2)
 		end

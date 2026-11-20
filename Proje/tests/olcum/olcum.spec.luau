@@ -112,6 +112,11 @@ local function submit(server, id, strokes)
 	observe(server, action)
 end
 
+local function progress(server, id, strokes)
+	local machine = server.machine
+	observe(server, { kind = "progress", userId = id, strokes = strokes, phase = machine.phase, round = machine.round })
+end
+
 local function vote(server, id, drawingId, emoji)
 	Machine.vote(server.machine, id, drawingId, emoji, server.world.now)
 	observe(server)
@@ -280,6 +285,8 @@ local function testDay()
 	end
 	advance(world, t0 + 155)
 	vote(full, P[4], "3-1", "laugh")
+	advance(world, t0 + 300)
+	progress(full, P[1], 12)
 	advance(world, t0 + 320)
 	leave(full, P[1])
 	advance(world, t0 + 328)
@@ -448,6 +455,17 @@ describe("Olcum -- test gunu akisi", function()
 		})
 	end)
 
+	it("T-021: CizimdeCikis yalniz teslim etmeden cizim fazinda cikanda -- cizimde gecen sn, son bildirilen cizgi kovasi", function()
+		local got = {}
+		for _, item in events(world, "CizimdeCikis") do
+			table.insert(got, { item.user, item.value, item.fields.cizgi, item.fields.kohort, item.fields.ilk_oturum })
+		end
+		expect(got).toEqual({
+			{ P[2], 2, "0", D1E, "evet" },
+			{ P[1], 126, "11-40", D1T, "evet" },
+		})
+	end)
+
 	it("T-021: Teslim her teslimde -- cizim basindan sn, dugme ya da sure doldu, cizgi kovasi", function()
 		local got = {}
 		for _, item in events(world, "Teslim") do
@@ -592,6 +610,12 @@ describe("Olcum -- T-021 Okuma tablosu (gun 1 kohortu, tekil kullanici)", functi
 	it("T-021: nerede cikiliyor = Cikis faz dagilimi (ilk oturum tipleri): lobi 4, cizimde teslimsiz 2, teslimden sonra 1", function()
 		local first = events(world, "Cikis", both(cohort(DAY1), field("oturum_tipi", table.unpack(FIRST_TYPES))))
 		expect(countBy(first, "faz")).toEqual({ lobi = 4, cizim_teslimsiz = 2, teslim_sonrasi = 1 })
+	end)
+
+	it("T-021: cizimde cikanin nedeni = CizimdeCikis cizgi kovasi dagilimi: 0 cizgi 1, 11-40 1", function()
+		local list = events(world, "CizimdeCikis", both(cohort(DAY1), firstSession))
+		expect(unique(list)).toBe(2)
+		expect(countBy(list, "cizgi")).toEqual({ ["0"] = 1, ["11-40"] = 1 })
 	end)
 
 	it("T-021: teslim suresi ve yolu = Teslim ortalamasi 432/12; dugme 11, sure doldu 1; cizgi 0:6, 1-10:5, 11-40:1", function()
@@ -792,6 +816,40 @@ describe("Olcum -- profil ve sinir durumlari", function()
 		advance(w, w.now + 5)
 		leave(s, 3)
 		expect(events(w, "Cikis")[1].fields.faz).toBe("izliyor")
+		expect(#events(w, "CizimdeCikis")).toBe(0)
+	end)
+
+	it("T-021: CizimdeCikis -- gec katilan icin sure katildigi andan; onceki turun cizgi bildirimi sayilmaz", function()
+		local w = newWorld(at(DAY1, 8))
+		local s = newServer(w)
+		join(s, 1)
+		join(s, 2)
+		advance(w, w.now + RoundTest.LobbyCountdownSeconds + RoundTest.TransitionSeconds + 10)
+		progress(s, 1, 30)
+		join(s, 3)
+		advance(w, w.now + 20)
+		leave(s, 3)
+		submit(s, 1, 30)
+		submit(s, 2, 1)
+		advance(w, w.now + RoundTest.TransitionSeconds + 2 * RoundTest.RevealSecondsPerDrawing + RoundTest.PodiumSeconds + RoundTest.LobbyCountdownSeconds + RoundTest.TransitionSeconds + 4)
+		leave(s, 1)
+		local got = {}
+		for _, item in events(w, "CizimdeCikis") do
+			got[item.user] = { item.value, item.fields.cizgi }
+		end
+		expect(got).toEqual({ [3] = { 20, "0" }, [1] = { 4, "0" } })
+	end)
+
+	it("T-021: ilerleme bildirimi cizim fazi disinda ya da baska oyuncu icin yok sayilir", function()
+		local w = newWorld(at(DAY1, 8))
+		local s = newServer(w)
+		join(s, 1)
+		progress(s, 1, 9)
+		join(s, 2)
+		advance(w, w.now + RoundTest.LobbyCountdownSeconds + RoundTest.TransitionSeconds + 3)
+		progress(s, 99, 50)
+		leave(s, 1)
+		expect(events(w, "CizimdeCikis")[1].fields.cizgi).toBe("0")
 	end)
 
 	it("T-021: CizimTepki -- sahibi kendi gosterimi sirasinda ciktiysa sunucudaki ilk gelen oyuncuya, sahibi cikti = evet", function()

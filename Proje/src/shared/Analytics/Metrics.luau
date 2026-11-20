@@ -36,6 +36,10 @@ local function drawingPhase(phase: string): boolean
 	return phase == "Drawing" or phase == "Collecting"
 end
 
+local function drawStart(round): number
+	return round.countdownEndsAt or round.startsAt
+end
+
 function Metrics.new(deps: { config: any, core: any })
 	return {
 		config = deps.config,
@@ -127,6 +131,9 @@ function Metrics.join(m, id: number, now: number, launchData: any)
 		pending = {},
 		matched = false,
 		phase = m.config.Alanlar.faz.Lobi,
+		drawRound = nil :: any,
+		drawStartedAt = 0,
+		progress = { round = nil :: any, strokes = 0 },
 		fiveMinutes = false,
 		startedRound = false,
 		sawReveal = false,
@@ -196,6 +203,14 @@ function Metrics.leave(m, id: number, now: number)
 	end
 	local duration = now - player.joinedAt
 	local info = player.info
+	if player.phase == config.Alanlar.faz.CizimTeslimsiz and player.drawRound then
+		local strokes = if player.progress.round == player.drawRound then player.progress.strokes else 0
+		m.core:log(id, "CizimdeCikis", seconds(math.max(now - player.drawStartedAt, 0)), {
+			cizgi = bucket(config.Alanlar.cizgi, config.CizgiSinirlari, strokes),
+			kohort = info.cohort,
+			ilk_oturum = info.firstSession,
+		})
+	end
 	if not player.matched then
 		m.core:log(id, "Eslesme", seconds(duration), {
 			eslesti = config.Alanlar.eslesti.Hayir,
@@ -274,7 +289,7 @@ local function onSubmit(m, action: Action, now: number)
 	local config = m.config
 	local how = if action.phase == "Drawing" then config.Alanlar.nasil.Dugme else config.Alanlar.nasil.SureDoldu
 	local strokes = bucket(config.Alanlar.cizgi, config.CizgiSinirlari, drawing.strokeCount)
-	event(m, player, "Teslim", seconds(math.max(now - round.startsAt, 0)), function(info)
+	event(m, player, "Teslim", seconds(math.max(now - drawStart(round), 0)), function(info)
 		return { nasil = how, cizgi = strokes, kohort = info.cohort }
 	end)
 end
@@ -350,6 +365,11 @@ function Metrics.observe(m, machine, now: number, action: Action?)
 	local config = m.config
 	if action and action.kind == "submit" then
 		onSubmit(m, action, now)
+	elseif action and action.kind == "progress" then
+		local player = m.players[action.userId]
+		if player and action.round and drawingPhase(action.phase) then
+			player.progress = { round = action.round, strokes = action.strokes }
+		end
 	end
 	if m.departed.round ~= machine.round then
 		m.departed = { round = machine.round, cohorts = {} }
@@ -359,6 +379,10 @@ function Metrics.observe(m, machine, now: number, action: Action?)
 	for id, player in m.players do
 		if machine.players[id] then
 			player.phase = phaseOf(config, machine, id)
+			if player.phase == config.Alanlar.faz.CizimTeslimsiz and player.drawRound ~= machine.round then
+				player.drawRound = machine.round
+				player.drawStartedAt = math.max(now, drawStart(machine.round))
+			end
 		end
 		if not player.fiveMinutes and now - player.joinedAt >= config.BesDakikaSaniye then
 			player.fiveMinutes = true

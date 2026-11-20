@@ -39,6 +39,7 @@ return table.freeze({
 		IlkReveal = table.freeze({ Ad = "IlkReveal", Alanlar = table.freeze({ "reveal_rol", "kohort", "ilk_oturum" }) }),
 		TurTamam = table.freeze({ Ad = "TurTamam", Alanlar = table.freeze({ "tur_sirasi", "katilim", "kohort" }) }),
 		Teslim = table.freeze({ Ad = "Teslim", Alanlar = table.freeze({ "nasil", "cizgi", "kohort" }) }),
+		CizimdeCikis = table.freeze({ Ad = "CizimdeCikis", Alanlar = table.freeze({ "cizgi", "kohort", "ilk_oturum" }) }),
 		CizimTepki = table.freeze({ Ad = "CizimTepki", Alanlar = table.freeze({ "ekrandaki", "sahibi_cikti", "kohort" }) }),
 	}),
 

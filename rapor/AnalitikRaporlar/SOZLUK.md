@@ -18,6 +18,7 @@ Kod: iş 6, 2026-11-20 (K-008, Cikis fazı + izliyor, Teslim, CizimTepki + sahib
 | IlkReveal | 1 | reveal_rol | kohort | ilk_oturum |
 | TurTamam | 1 | tur_sirasi | katilim | kohort |
 | Teslim | çizimin başından (geçiş perdesi bittikten) teslime sn | nasil | cizgi | kohort |
+| CizimdeCikis | çizim başladıktan (ya da oyuncu tura girdikten) çıkışa sn | cizgi | kohort | ilk_oturum |
 | CizimTepki | tepki veren ÷ tepki verebilecek × 100 (tam sayı) | ekrandaki | sahibi_cikti | kohort |
 
 ## Değerler
@@ -46,7 +47,9 @@ Kod: iş 6, 2026-11-20 (K-008, Cikis fazı + izliyor, Teslim, CizimTepki + sahib
   (katılımcı değil, reveal biterken hazırdı).
 - **nasil:** `dugme` (çizim aşamasında gelen teslim) · `sure_doldu` (süre bitince istemcinin kendiliğinden gönderdiği,
   toplama aşamasında gelen teslim). Son saniyede basılan düğme gecikmeyle toplama aşamasına düşerse `sure_doldu` olur.
-- **cizgi:** teslim edilen çizgi sayısı `0` / `1-10` / `11-40` / `41-80` / `80+`.
+- **cizgi:** Teslim'de teslim edilen çizgi sayısı; CizimdeCikis'te istemcinin o turda en son bildirdiği çizgi sayısı
+  (bildirim çizgi sayısı değiştikçe, en sık `Round.ProgressSendSeconds`'ta bir; son birkaç saniyedeki çizgiler
+  eksik kalabilir; hiç bildirim yoksa `0`). Kovalar `0` / `1-10` / `11-40` / `41-80` / `80+`.
 - **ekrandaki:** o çizim gösterilirken en az bir an hazır olan, sahibi dışındaki oyuncu sayısı `1` / `2-3` / `4-7`
   (8 ve üstü de `4-7`). CizimTepki'nin paydası budur.
 - **sahibi_cikti:** `hayir` = olay çizim sahibine bağlı · `evet` = sahibi gösterim bitmeden oyundan çıkmıştı, olay
@@ -65,6 +68,8 @@ Kod: iş 6, 2026-11-20 (K-008, Cikis fazı + izliyor, Teslim, CizimTepki + sahib
 - İptal edilen tur (kimse çizmedi) reveal'a girmez: IlkReveal, TurTamam ve CizimTepki yok; TurBasladi ve Teslim
   gitmiş olabilir.
 - Teslim: sunucunun kabul ettiği her teslimde bir kez (turda bir oyuncu bir kez teslim edebilir).
+- CizimdeCikis: çıkıştaki faz `cizim_teslimsiz` ise, Cikis'ten hemen önce. İzleyen (`izliyor`) ve teslim edip çıkan
+  için gitmez.
 - CizimTepki: çizimin gösterimi bitince (sonraki çizime ya da podyuma geçince). Sahibinin kendi oyu sayılmaz, nötr
   emoji sayılır. Sahibi o anda oyunda değilse sunucudaki ilk gelen oyuncuya bağlanır (LEAK `forTable` kalıbı);
   sunucuda kimse yoksa ya da tepki verebilecek kimse yoksa gitmez.

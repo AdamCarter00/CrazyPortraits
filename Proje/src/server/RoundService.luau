@@ -7,6 +7,7 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Net = require(Shared.Net)
 local Machine = require(Shared.Round.Machine)
 local RoundConfig = require(Shared.Config.Round)
+local DrawingConfig = require(Shared.Config.Drawing)
 local StrokeValidator = require(Shared.Drawing.StrokeValidator)
 local StrokeCodec = require(Shared.Drawing.StrokeCodec)
 
@@ -55,6 +56,25 @@ local function onSubmit(player: Player, payload: any)
 	apply(Machine.submit(state, player.UserId, StrokeCodec.encode(strokes), #strokes, now()), action)
 end
 
+local lastProgress: { [number]: number } = {}
+
+local function onProgress(player: Player, payload: any)
+	if typeof(payload) ~= "table" or typeof(payload.strokes) ~= "number" then
+		return
+	end
+	local count = payload.strokes
+	if count ~= count or count < 0 or count > DrawingConfig.MaxStrokes or count % 1 ~= 0 then
+		return
+	end
+	local at = now()
+	local id = player.UserId
+	if at - (lastProgress[id] or -math.huge) < RoundConfig.ProgressAcceptSeconds then
+		return
+	end
+	lastProgress[id] = at
+	apply({}, { kind = "progress", userId = id, strokes = count, phase = state.phase, round = state.round })
+end
+
 local function onVote(player: Player, payload: any)
 	if typeof(payload) ~= "table" or typeof(payload.drawingId) ~= "string" or typeof(payload.emoji) ~= "string" then
 		return
@@ -78,6 +98,8 @@ function RoundService.start()
 			onSubmit(player, payload)
 		elseif name == "Vote" then
 			onVote(player, payload)
+		elseif name == "Progress" then
+			onProgress(player, payload)
 		end
 	end)
 
@@ -99,6 +121,7 @@ function RoundService.join(player: Player)
 end
 
 function RoundService.leave(player: Player)
+	lastProgress[player.UserId] = nil
 	apply(Machine.leave(state, player.UserId, now()))
 end
 
