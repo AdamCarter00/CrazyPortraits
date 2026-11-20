@@ -17,7 +17,7 @@ GameAnalytics paketi rafta) bu raporun "Devam" bölümünde.
 | Profil | `PlayerDataService` | `GetFirstJoin` / `RecordFirstJoin`: `firstJoin = {day, source, version}`; şablonda yok (Reconcile eski profillere yazmasın), bir kez yazılır, hemen `Save`. Yeni profil = `SessionLoadCount == 1`. |
 | Bağlantı | `RoundService.observe`, `Main.server` | Her tur çağrısından sonra ölçüm gözlemcisi (pcall); giriş `PlayerAdded`'da hemen, profil yüklenince ikinci adım, çıkış `PlayerRemoving`'de. |
 
-Testler: `tests/olcum/core.spec.luau` (çekirdek, 15), `tests/olcum/olcum.spec.luau` (akış + Okuma tablosu, 43). Toplam 147 test yeşil.
+Testler: `tests/olcum/core.spec.luau` (çekirdek, 15), `tests/olcum/olcum.spec.luau` (akış + Okuma tablosu, 47). Toplam (bütün depo) 154 test yeşil.
 
 - Okuma testleri bir "test günü" simüle eder: 9 oyuncu, iki sunucu (dolu / tek kişilik), gerçek tur makinesiyle; tek başına giriş, dolu sunucu, reveal sırasında geç giren izleyici, boş teslim, süre dolunca teslim, iptal edilen tur (herkes boş), teslimden sonra çıkış, sahibi çıkmış çizimin reveal'ı, oylar (sahibin kendi oyu, nötr emoji), aynı gün tekrar giriş, gece yarısı dönüşü, gece yarısını çıkmadan geçme, profil okunamayan, F-001'den eski profil.
 - Pay/payda: D1 1/7 (Wilson 0.026–0.513) · ortalama oturum 1750/7, tüm oturumlar 1930/9 · ilk 60 sn 1/7 · 5. dk 4/7 · ilk tur 3/7 · zincir 4·4·3·1 /7 · oylama anı 4/7 · başlayan maç 4/7 · bekleme 91/4 · tek başına 4/7, Eslesme hayır 3/7 · **nerede çıkılıyor** lobi 4, çizimde teslimsiz 2, teslimden sonra 1 · **teslim** ortalama 36 sn (12 teslim), düğme 11 / süre doldu 1, çizgi 0:6 · 1-10:5 · 11-40:1 · **reveal ilgisi** CizimTepki ortalaması `2-3` kovasında 30 (5 çizim), `1` kovasında 0 (sahibi çıkmış 1 çizim) · **etiketli dilim** bütün olaylarda (D1 1/2, oturum 280, BesDakika 1/2, TurBasladi/IlkReveal/TurTamam 1, Eslesme hayır 1, Teslim 15 sn, CizimTepki 58,5).
@@ -31,6 +31,7 @@ Testler: `tests/olcum/core.spec.luau` (çekirdek, 15), `tests/olcum/olcum.spec.l
 - **Cikis faz:** çıkış anındaki aşama. Çıkış turu ilerletse de (son bekleneni çıkınca reveal başlar) çıkıştan önceki faz yazılır; bu yüzden faz her tur çağrısından sonra saklanır.
 - **Teslim:** "nasıl" sunucuda teslimin geldiği aşamadan çıkar: çizim aşaması = düğme, toplama aşaması = süre doldu (istemci `Collect` gelince kendisi gönderir, `DrawingScreen:collect`). Değer, geçiş perdesinden sonraki çizim başlangıcından sayılır.
 - **CizimTepki:** her çizimin gösterimi bitince sahibine. Payda = o çizim gösterilirken en az bir an hazır olan, sahibi dışındaki oyuncular; "ekrandaki oyuncu kovası" bu sayı. Payda 0 ise gitmez. Üçüncü adımda: sahibi çıktıysa sunucuda en erken girmiş oyuncuya bağlanır (LEAK `forTable`), `sahibi_cikti = evet`, kohort sahibinin (çıkarken saklanır, tur bitince silinir); sunucuda kimse yoksa gitmez.
+- **CizimdeCikis** (dördüncü adım, `1cde1af`): çıkıştaki faz `cizim_teslimsiz` ise Cikis'ten önce gider; değer = çizimin açıldığı andan (geç katılan için tura girdiği andan) çıkışa sn. Teslim edilmemiş çizimin çizgi sayısı sunucuda yoktu: istemci Round kanalında `Progress {strokes}` bildirir (çizgi sayısı değişince, en sık `Round.ProgressSendSeconds` = 2 sn'de bir; sunucu sayıyı 0–80 tam sayı olarak doğrular, oyuncu başına `ProgressAcceptSeconds` = 1 sn sınırı). Son bildirimden sonraki birkaç saniyenin çizgileri eksik kalabilir. Birleşim 5 × 205 × 3 = 3.075. Okuma: çizgi kovası dağılımı; test gününde 0 çizgi 1, 11-40 1.
 - **T-017:** `ReplicatedStorage.Packages` (içinde yalnız GameAnalytics 2.2.6 ve `_Index`; 21 ModuleScript, hiç Script/LocalScript yok, place'te onu require eden kod yok) **ServerStorage.Packages**'a taşındı, silinmedi. Play'de doğrulama: istemcide paket yok (ServerStorage boş, ReplicatedStorage.Packages yok); sunucuda yalnız paketin kendi modülleri var, GA'nın yüklenince kurduğu nesnelerden hiçbiri yok, Output'ta GA satırı yok. Değişiklik Studio'da, place kaydedilmedi (publish de yok): Adam kaydedince kalıcı olur.
 
 ## Koddaki okumalar (T-021'de açık yazmayan, karar değil)
@@ -57,7 +58,7 @@ Kaynak: `Oyunlar\LEAK\rapor\AnalitikRaporlar\2026.11.06-TEST1\veri.md`, `2026.11
 
 ## Madde 7 — Prova listesi (yayınlanmış oyunda, reklamdan önce)
 
-Hazırlık: 4 yeni alt hesap (A, B, C, D; oyuna hiç girmemiş) + Adam'ın hesabı. Prova günü = G (UTC). Saatler UTC.
+Hazırlık: 5 yeni alt hesap (A, B, C, D, E; oyuna hiç girmemiş; E telefonda) + Adam'ın hesabı. Adım 10 T-021 Kısıt'ındaki "bir tur telefonda baştan sona"; Explore sayıları adım 1–9 içindir (E ayrı sayılır). Prova günü = G (UTC). Saatler UTC.
 Tur için en az 2 hazır oyuncu varsayıldı (`MinPlayers`; depoda yerel değişiklik olarak 1 duruyor, commit edilmedi; yayında kaç olduğunu kontrol et).
 
 | # | Ne yapılır | Beklenen olaylar |
@@ -71,8 +72,9 @@ Tur için en az 2 hazır oyuncu varsayıldı (`MinPlayers`; depoda yerel değiş
 | 7 | B, G 23:50'de girer, 23:55'te çıkar; G+1 00:05'te tekrar girer | G+1 girişinde D1Donus (kohort `G/etiketsiz`) |
 | 8 | C, G 23:55'te girer, G+1 00:05'e kadar çıkmadan kalır; G+1'de bir daha girmez | D1Donus yok · Cikis donus |
 | 9 | Adam'ın hesabı girer, çıkar | Cikis kohort `bilinmiyor/bilinmiyor`, oturum_tipi donus · IlkGiris yok |
+| 10 | Bir telefonla (yeni alt hesap E ve bir arkadaş) bir tur baştan sona: sayım, çizim, Submit, reveal, emoji, podyum; ikinci turda E çizerken (birkaç çizgi sonra, teslim etmeden) oyundan çıkar | E için IlkGiris … TurTamam sıra 1 · CizimdeCikis cizgi 1-10 (ya da bildirim gecikmesiyle 0) · Cikis faz cizim_teslimsiz |
 
-**View Events'te tek tek** (her olay en az bir kez, alanları SOZLUK'teki sırayla): IlkGiris (A, B, C, D; 4) · D1Donus (B; 1) · Cikis (A ×2, B ×3, C ×2, D, Adam) · BesDakika (B, C, D) · Eslesme (her oturumda bir) · TurBasladi (B, C, D) · IlkReveal (B, C, D) · TurTamam (sıra 1 ×3, sıra 2 ×3) · Teslim (7: tur 1 ×2, tur 2 ×3, tur 3 ×2) · CizimTepki (4). Ayrıca: A'nın kohortu `G/etiketli`; hiçbir alanda ad ya da numara yok.
+**View Events'te tek tek** (her olay en az bir kez, alanları SOZLUK'teki sırayla): IlkGiris (A, B, C, D; 4) · D1Donus (B; 1) · Cikis (A ×2, B ×3, C ×2, D, Adam) · BesDakika (B, C, D) · Eslesme (her oturumda bir) · TurBasladi (B, C, D) · IlkReveal (B, C, D) · TurTamam (sıra 1 ×3, sıra 2 ×3) · Teslim (7: tur 1 ×2, tur 2 ×3, tur 3 ×2) · CizimTepki (4) · CizimdeCikis (D, tur 3; E, adım 10). Ayrıca: A'nın kohortu `G/etiketli`; hiçbir alanda ad ya da numara yok.
 
 **Explore'da pay ve payda** (kohort = `G/…`, tekil kullanıcı): IlkGiris 4 · D1 1/4 · ilk 60 sn 1/4 · 5. dk 3/4 · ilk tur tamamlama 2/4 (D izledi, sayılmaz) · R0/R1/R2/R3 3/4, 3/4, 3/4, 0/4 · oylama anı 3/4 · başlayan maç 3/4 · IlkGiris ortalaması 0,5 · Eslesme hayır (ilk oturum) 1/4 · faz (ilk oturum) lobi 1, cizim_teslimsiz 1, teslim_sonrasi 1, reveal 1 · Teslim nasıl dugme 6 / sure_doldu 1 · etiketli (`G/etiketli`): IlkGiris 1, D1 0/1, öteki olaylar 0. Ortalama oturum, bekleme, teslim süresi ve CizimTepki değerleri: o günün süreleri ve basılan emojilerle elle karşılaştır.
 
