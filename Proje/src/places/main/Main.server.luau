@@ -1,7 +1,65 @@
 --!strict
 
-local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local Players = game:GetService("Players")
 
-local Terms = require(ReplicatedStorage:WaitForChild("Shared").Config.Terms)
+local Server = script.Parent:WaitForChild("Server")
+local AdminService = require(Server.AdminService)
+local AdminCommandRouter = require(Server.AdminCommandRouter)
+local AdminChatHook = require(Server.AdminChatHook)
+local DrawingsChatHook = require(Server.DrawingsChatHook)
+local BanService = require(Server.BanService)
+local PlayerDataService = require(Server.PlayerDataService)
+local RoundService = require(Server.RoundService)
 
-print(Terms.GameName .. " sunucu basladi")
+local function startup(name: string, fn: () -> ())
+	local ok, err = pcall(fn)
+	if not ok then
+		warn("[Main] baslatilamadi:", name, "-", err)
+	end
+end
+
+startup("AdminService", function()
+	AdminService:Init()
+end)
+startup("BanService", function()
+	BanService:Init()
+end)
+startup("AdminCommandRouter", AdminCommandRouter.connect)
+startup("AdminChatHook", AdminChatHook.connect)
+startup("DrawingsChatHook", DrawingsChatHook.connect)
+
+local function onPlayerAdded(player: Player)
+	local banEntry = BanService.isBanned(player.UserId)
+	if banEntry then
+		pcall(function()
+			player:Kick(BanService.formatBanMessage(banEntry))
+		end)
+		return
+	end
+	local ok, err = pcall(function()
+		PlayerDataService:OnPlayerAdded(player)
+	end)
+	if not ok then
+		warn("[Main] PlayerData:", player.Name, "-", err)
+	end
+	if player.Parent and RoundService.isStarted() then
+		RoundService.join(player)
+	end
+end
+
+Players.PlayerAdded:Connect(function(player)
+	task.spawn(onPlayerAdded, player)
+end)
+
+Players.PlayerRemoving:Connect(function(player)
+	local ok, err = pcall(function()
+		PlayerDataService:OnPlayerRemoving(player)
+	end)
+	if not ok then
+		warn("[Main] PlayerData cikis:", player.Name, "-", err)
+	end
+end)
+
+for _, player in Players:GetPlayers() do
+	task.spawn(onPlayerAdded, player)
+end
