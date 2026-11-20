@@ -187,7 +187,7 @@ local function startReveal(state, now: number, out: { Effect })
 	local list = {}
 	for _, ownerId in round.participantOrder do
 		local drawing = round.drawings[ownerId]
-		if drawing then
+		if drawing and drawing.strokeCount > 0 then
 			table.insert(list, {
 				drawingId = `{round.id}-{#list + 1}`,
 				ownerId = ownerId,
