@@ -45,12 +45,10 @@ Saf durum makinesi + zamanlayıcı + yan etki katmanı; Lune testleriyle.
 - Sahibin kendi çizimine emoji basması **kalır** (kasıtlı: ilk tepkiyi başlatsın, puan yok).
 - **Neden:** oyuncu oyunun sayıldığını görmüyor; kazanan yok.
 
-## 6 · Ölçüm (Gün 4) — araç kararı bundan önce
-- Başlamadan önce kasada T-016'yı oku (ikinci oyuncu gördü mü ve ilk eşleşme süresi dahil).
-- Olaylar olduğu anda: giriş + kaynak (`UserAcquisitionSource`, reklam açık mı) → hazır → yalnız bekleme → ilk fırça → teslim (düğme/süre) → ilk gösterim → ilk oy → kendi çiziminin gösterimi + aldığı tepki → ikinci çizime başlama → tur n tamamlandı ("çizdi mi" alanıyla); sunucu başına oyuncu sayısı zaman serisi (21).
-- Mevcut hatalar: `QuitAlone` sınıflaması, `RoundComplete`'in çizmeyeni saymasın; temel analitik işlevleri eksiksiz ve doğru (22).
+## 6 · Ölçüm (Gün 4) — KOD HAZIR 2026-11-20 (yayında prova bekliyor; rapor `rapor\KodRaporlari\olcum-is6.md`)
+- Olaylar, alanlar ve okuma: kasada T-021 (eski olay listesinin yerini aldı). Araç: T-017. Dayanak: T-016.
+- `QuitAlone` / `RoundComplete` eski F-001 olaylarıydı; yeni kodda yoklar.
 - **Neden:** düzeltmelerin işe yarayıp yaramadığı yalnız bununla görülür; Kapı 1 bu olaylarla okunur.
-- **Açık:** Roblox analitiği mi, GA mı (ayrı oturum; LEAK'in altyapısı Roblox analitiğiyle).
 
 ## 7 · Mobil arayüz (Gün 4–5)
 - Dokunma hedefleri ≥44 pt: Submit (bugün 40×14), emoji (47×29), renk/araç (13).

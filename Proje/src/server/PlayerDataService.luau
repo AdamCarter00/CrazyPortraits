@@ -250,6 +250,34 @@ function PlayerDataService:SetEquippedFrame(player, frameId)
 end
 
 --------------------------------------------------------------------------------
+-- First join (analytics cohort)
+--------------------------------------------------------------------------------
+
+-- firstJoin is deliberately absent from TEMPLATE: Reconcile would otherwise fill it on
+-- old profiles. SessionLoadCount is 1 only on the session that created the profile.
+function PlayerDataService:GetFirstJoin(player)
+	local profile = activeProfiles[player]
+	if not profile then
+		return { ok = false }
+	end
+	local record = profile.Data.firstJoin
+	if typeof(record) ~= "table" then
+		record = nil
+	end
+	return { ok = true, record = record, fresh = profile.SessionLoadCount == 1 }
+end
+
+function PlayerDataService:RecordFirstJoin(player, record)
+	local profile = activeProfiles[player]
+	if not profile or profile.Data.firstJoin ~= nil then
+		return false
+	end
+	profile.Data.firstJoin = { day = record.day, source = record.source, version = record.version }
+	profile:Save()
+	return true
+end
+
+--------------------------------------------------------------------------------
 -- Shutdown
 --------------------------------------------------------------------------------
 

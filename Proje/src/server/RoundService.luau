@@ -13,6 +13,7 @@ local StrokeCodec = require(Shared.Drawing.StrokeCodec)
 local RoundService = {}
 
 local state = nil
+local observers: { (machine: any, now: number) -> () } = {}
 
 local function now(): number
 	return workspace:GetServerTimeNow()
@@ -26,6 +27,17 @@ local function apply(effects)
 			Net.toUserId(effect.to, effect.name, effect.payload)
 		end
 	end
+	local at = now()
+	for _, observer in observers do
+		local ok, err = pcall(observer, state, at)
+		if not ok then
+			warn("[RoundService] gozlemci:", err)
+		end
+	end
+end
+
+function RoundService.observe(observer: (machine: any, now: number) -> ())
+	table.insert(observers, observer)
 end
 
 local function onSubmit(player: Player, payload: any)
