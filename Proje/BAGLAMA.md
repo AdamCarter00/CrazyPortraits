@@ -73,12 +73,12 @@ Logo ve süs emojileri işaretsizdir; kod onlara dokunmaz.
 | `reveal_sira` | TextLabel | "3 / 6" | 4 |
 | `reveal_sure` | Frame | Süre çubuğunun dolgusu; kod yalnız `Size.X.Scale`'i yazar | 4 |
 
-## Emoji (T-006)
+## Emoji (T-006, T-027)
 
 | İşaret | Sınıf | Not | İş |
 |---|---|---|---|
 | `emoji_ekran` | ScreenGui | Reveal'da görünen emoji şeridi | 5 |
-| `emoji_laugh` `emoji_skull` `emoji_shocked` `emoji_normal` | GuiButton | `Config.Round.Emojis` sırasıyla, seçilebilir (seçili emoji belirgin); en az 44 pt | 5 |
+| `emoji_laugh` `emoji_crazy` `emoji_shocked` `emoji_thinking` | GuiButton | Komik, çılgın, şok, düşünceli (nötr); `Config.Round.Emojis` sırasıyla, seçilebilir (seçili emoji belirgin); en az 44 pt. Görseli Studio'da atanır, kod görsel yazmaz | 5 |
 ## Podyum (T-007)
 
 | İşaret | Sınıf | Not | İş |

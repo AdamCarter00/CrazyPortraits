@@ -218,7 +218,7 @@ describe("Tur -- gosterim ve oy", function()
 		local first = state.round.reveal.list[1]
 		Machine.tick(state, state.round.reveal.endsAt)
 		expect(state.round.reveal.index).toBe(2)
-		local out = Machine.vote(state, 2, first.drawingId, "skull", state.round.reveal.endsAt)
+		local out = Machine.vote(state, 2, first.drawingId, "crazy", state.round.reveal.endsAt)
 		expect(#out).toBe(0)
 		local second = state.round.reveal.list[2]
 		expect(state.round.votes[second.drawingId]).toBeNil()
@@ -234,10 +234,10 @@ describe("Tur -- gosterim ve oy", function()
 		local state, t = inReveal(2)
 		local id = state.round.reveal.list[1].drawingId
 		Machine.vote(state, 2, id, "laugh", t)
-		Machine.vote(state, 2, id, "skull", t)
+		Machine.vote(state, 2, id, "crazy", t)
 		Machine.tick(state, state.round.reveal.endsAt)
 		local podium = find(Machine.tick(state, state.round.reveal.endsAt), "Podium", "all")
-		expect(podium.payload.entries[1].reactions.skull).toBe(1)
+		expect(podium.payload.entries[1].reactions.crazy).toBe(1)
 		expect(podium.payload.entries[1].reactions.laugh).toBe(0)
 	end)
 
@@ -268,16 +268,16 @@ describe("Tur -- gosterim ve oy", function()
 		local list = state.round.reveal.list
 		Machine.vote(state, 2, list[1].drawingId, "laugh", t)
 		Machine.vote(state, 3, list[1].drawingId, "laugh", t)
-		Machine.vote(state, 1, list[1].drawingId, "skull", t)
+		Machine.vote(state, 1, list[1].drawingId, "crazy", t)
 		Machine.tick(state, state.round.reveal.endsAt)
-		Machine.vote(state, 1, list[2].drawingId, "normal", state.round.reveal.endsAt)
+		Machine.vote(state, 1, list[2].drawingId, "thinking", state.round.reveal.endsAt)
 		Machine.tick(state, state.round.reveal.endsAt)
 		local out = Machine.tick(state, state.round.reveal.endsAt)
 		local podium = find(out, "Podium", "all")
 		expect(#podium.payload.entries).toBe(3)
 		expect(podium.payload.entries[1].reactions.laugh).toBe(2)
-		expect(podium.payload.entries[1].reactions.skull).toBe(0)
-		expect(podium.payload.entries[2].reactions.normal).toBe(1)
+		expect(podium.payload.entries[1].reactions.crazy).toBe(0)
+		expect(podium.payload.entries[2].reactions.thinking).toBe(1)
 		expect(podium.payload.entries[1].ownerName).toBe("P1")
 	end)
 
@@ -464,9 +464,9 @@ describe("Tur -- podyum", function()
 
 	it("K-003: toplam tepkiyle siralanir, notr emoji sayilmaz", function()
 		local podium = podiumAfter(4, {
-			[1] = { { 2, "normal" }, { 3, "normal" }, { 4, "normal" } },
+			[1] = { { 2, "thinking" }, { 3, "thinking" }, { 4, "thinking" } },
 			[2] = { { 1, "laugh" } },
-			[3] = { { 1, "skull" }, { 2, "shocked" }, { 4, "laugh" } },
+			[3] = { { 1, "crazy" }, { 2, "shocked" }, { 4, "laugh" } },
 		})
 		expect(podium.entries[1].ownerUserId).toBe(3)
 		expect(podium.entries[1].score).toBe(3)

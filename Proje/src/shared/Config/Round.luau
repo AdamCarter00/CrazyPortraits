@@ -16,6 +16,12 @@ return table.freeze({
 	ProgressSendSeconds = 2,
 	ProgressAcceptSeconds = 1,
 
-	Emojis = table.freeze({ "laugh", "skull", "shocked", "normal" }),
-	NeutralEmojis = table.freeze({ "normal" }),
+	Emojis = table.freeze({ "laugh", "crazy", "shocked", "thinking" }),
+	NeutralEmojis = table.freeze({ "thinking" }),
+	EmojiImages = table.freeze({
+		laugh = "rbxassetid://114846288032822",
+		crazy = "rbxassetid://82661481595257",
+		shocked = "rbxassetid://135489123825296",
+		thinking = "rbxassetid://86270765562943",
+	}),
 })
