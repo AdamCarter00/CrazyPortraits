@@ -1,6 +1,6 @@
 --!strict
 
--- Kodun arayuzde ve dunyada aradigi sabit isaretler. Renk, firca, emoji, podyum yuvasi ve yukleme adimi
+-- Kodun arayuzde ve dunyada aradigi sabit isaretler. Renk, firca, emoji ve podyum yuvasi
 -- isaretleri Binder.expected'ta ilgili Config'ten uretilir. Her satir BAGLAMA.md'de de yazili olmali (test zorlar).
 return table.freeze({
 	MarkerAttribute = "Isaret",
@@ -29,8 +29,8 @@ return table.freeze({
 		table.freeze({ mark = "gecis_etiket", class = "TextLabel", group = "gecis" }),
 
 		table.freeze({ mark = "yukleme_ekran", class = "ScreenGui", group = "yukleme" }),
-		table.freeze({ mark = "yukleme_durum", class = "TextLabel", group = "yukleme" }),
-		table.freeze({ mark = "yukleme_tekrar", class = "GuiButton", group = "yukleme" }),
+		table.freeze({ mark = "yukleme_ipucu", class = "TextLabel", group = "yukleme" }),
+		table.freeze({ mark = "yukleme_cubuk_yazi", class = "TextLabel", group = "yukleme" }),
 
 		table.freeze({ mark = "lobi_ekran", class = "ScreenGui", group = "lobi" }),
 		table.freeze({ mark = "lobi_davet", class = "GuiButton", group = "lobi" }),

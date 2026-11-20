@@ -45,14 +45,15 @@ Kod nesne yaratmaz, yalnız içerik, görünürlük ve davranış yazar. "Kod ya
 | `gecis_cerceve` | CanvasGroup | Perdenin solan çerçevesi | 3 |
 | `gecis_etiket` | TextLabel | Perdedeki aşama adı | 3 |
 
-## Yükleme (T-018)
+## Yükleme (T-018, T-025)
+
+Logo ve süs emojileri işaretsizdir; kod onlara dokunmaz.
 
 | İşaret | Sınıf | Not | İş |
 |---|---|---|---|
-| `yukleme_ekran` | ScreenGui | Yükleme ekranı; sabit bekleme yok, hazır olunca kod kapatır | 8 |
-| `yukleme_adim_1` `yukleme_adim_2` `yukleme_adim_3` | TextLabel | Üç adım; metin `Terms.LoadingSteps` sırasıyla | 8 |
-| `yukleme_durum` | TextLabel | Hata ya da bekleme durumu | 8 |
-| `yukleme_tekrar` | GuiButton | Hata olunca yeniden dene | 8 |
+| `yukleme_ekran` | ScreenGui | Yükleme ekranı; sabit bekleme yok: profil yüklenip oyun hazır olunca ve en az `Config.Loading.MinSeconds` geçince kod kapatır. Başarısızsa açık kalır | 8 |
+| `yukleme_ipucu` | TextLabel | Çubuğun üstünde dönen ipucu; metin `Terms.LoadingTips`, `Config.Loading.TipSeconds`'ta bir değişir. Studio'daki adı şimdilik `TextLabel` | 8 |
+| `yukleme_cubuk_yazi` | TextLabel | Çubuğun yazısı: `Terms.Loading`; yükleme başarısızsa `Terms.DataLoadFailed`. Studio'daki adı `Loading_Yazi` | 8 |
 
 ## Lobi (T-020: yalnız Invite)
 

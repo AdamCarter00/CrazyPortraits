@@ -4,7 +4,6 @@ local Shared = ReplicatedStorage:WaitForChild("Shared")
 local Binding = require(Shared.Config.Binding)
 local Drawing = require(Shared.Config.Drawing)
 local Round = require(Shared.Config.Round)
-local Terms = require(Shared.Config.Terms)
 
 local Binder = {}
 
@@ -18,9 +17,6 @@ function Binder.expected()
 	end
 	for _, mark in Drawing.BrushMarks do
 		table.insert(list, { mark = mark, class = "GuiButton", selectable = true, group = "cizim" })
-	end
-	for index in Terms.LoadingSteps do
-		table.insert(list, { mark = "yukleme_adim_" .. index, class = "TextLabel", group = "yukleme" })
 	end
 	for _, name in Round.Emojis do
 		table.insert(list, { mark = "emoji_" .. name, class = "GuiButton", selectable = true, group = "emoji" })	end

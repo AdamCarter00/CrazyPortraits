@@ -1,6 +1,9 @@
 --!strict
 
 local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+
+local Net = require(ReplicatedStorage:WaitForChild("Shared").Net)
 
 local Server = script.Parent:WaitForChild("Server")
 local AdminService = require(Server.AdminService)
@@ -42,14 +45,19 @@ local function onPlayerAdded(player: Player)
 		return
 	end
 	Measurement.join(player)
-	local ok, err = pcall(function()
-		PlayerDataService:OnPlayerAdded(player)
+	local ok, loaded = pcall(function()
+		return PlayerDataService:OnPlayerAdded(player)
 	end)
 	if not ok then
-		warn("[Main] PlayerData:", player.Name, "-", err)
+		warn("[Main] PlayerData:", player.Name, "-", loaded)
 	end
 	Measurement.profileReady(player)
-	if player.Parent and RoundService.isStarted() then
+	if not player.Parent then
+		return
+	end
+	local ready = ok and loaded == true
+	Net.toPlayer(player, "Loaded", { ok = ready })
+	if ready and RoundService.isStarted() then
 		RoundService.join(player)
 	end
 end

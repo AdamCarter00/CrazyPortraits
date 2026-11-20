@@ -11,7 +11,6 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 
 local Config = ReplicatedStorage:WaitForChild("Shared").Config
 local Stores = require(Config.Stores)
-local Terms = require(Config.Terms)
 local ProfileStore = require(script.Parent:WaitForChild("ProfileStore"))
 
 --------------------------------------------------------------------------------
@@ -76,11 +75,8 @@ function PlayerDataService:OnPlayerAdded(player)
 	})
 
 	if not profile then
-		-- Session could not be opened (conflict/timeout). Kicking is the safe call:
-		-- letting the player in profile-less would risk a later overwrite of good data.
 		warn("[PlayerDataService] Could not open profile:", player.Name)
-		player:Kick(Terms.DataLoadFailed)
-		return
+		return false
 	end
 
 	profile:AddUserId(player.UserId)
@@ -94,10 +90,11 @@ function PlayerDataService:OnPlayerAdded(player)
 		-- Player left during the async load; release the lock so their next join
 		-- (possibly on another server) is not blocked.
 		profile:EndSession()
-		return
+		return false
 	end
 
 	activeProfiles[player] = profile
+	return true
 end
 
 function PlayerDataService:OnPlayerRemoving(player)

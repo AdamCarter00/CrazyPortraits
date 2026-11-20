@@ -17,7 +17,12 @@ return table.freeze({
 	DrawOther = "Draw %s",
 	CountdownDigit = "%d",
 
-	LoadingSteps = table.freeze({ "Draw the player", "Make it funny, not pretty", "Collect reactions" }),
+	Loading = "Loading...",
+	LoadingTips = table.freeze({
+		"Tip: Making people laugh matters more than drawing well!",
+		"Tip: Everyone sees your drawing at the end of the round!",
+		"Tip: Tap an emoji to react to a drawing!",
+	}),
 
 	BanTimed ="You are suspended for %d more hour(s).",
 	BanPermanent = "You are permanently suspended.",

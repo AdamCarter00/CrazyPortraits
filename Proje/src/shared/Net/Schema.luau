@@ -4,6 +4,7 @@
 local Schema = {}
 
 Schema.Messages = table.freeze({
+	Loaded = { channel = "Round", fields = { ok = "boolean" } },
 	Lobby = { channel = "Round", fields = { status = "string", readyCount = "number", minPlayers = "number", endsAt = "?number" } },
 	Drawing = {
 		channel = "Round",

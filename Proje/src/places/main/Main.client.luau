@@ -10,6 +10,7 @@ local Binder = require(Client:WaitForChild("Binder"))
 local GuiVisibility = require(Client:WaitForChild("GuiVisibility"))
 local DrawingScreen = require(Client:WaitForChild("DrawingScreen"))
 local PhaseView = require(Client:WaitForChild("PhaseView"))
+local LoadingScreen = require(Client:WaitForChild("LoadingScreen"))
 
 require(Client:WaitForChild("AdminClient")).start()
 
@@ -17,6 +18,7 @@ local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
 local refs, selected = Binder.bind(playerGui, Binder.expected(), Binding.GuiWaitSeconds)
+local loading = LoadingScreen.new(refs)
 local visibility = GuiVisibility.new(playerGui)
 local drawing = DrawingScreen.new(refs, selected, visibility)
 local phase = PhaseView.new(refs)
@@ -33,8 +35,12 @@ drawing.onSubmitted = function()
 	phase:show(Terms.PhaseSubmitted)
 end
 
+-- Sunucu "Loaded"i bu baglantidan once gonderebilir; Roblox ilk baglantiya kadar kuyrukta tutar, bu yuzden
+-- Round kanalina ikinci bir dinleyici baglanmaz.
 Net.onClientEvent("Round", function(name, payload)
-	if name == "Lobby" then
+	if name == "Loaded" then
+		loading:finish(payload.ok)
+	elseif name == "Lobby" then
 		drawing:close()
 		if payload.status == "countdown" then
 			phase:ticker(function()
