@@ -13,7 +13,7 @@ return table.freeze({
 		table.freeze({ name = "Siyah", mark = "renk_siyah", r = 26, g = 26, b = 26 }),
 		table.freeze({ name = "Beyaz", mark = "renk_beyaz", r = 255, g = 255, b = 255 }),
 		table.freeze({ name = "Gri", mark = "renk_gri", r = 158, g = 158, b = 158 }),
-		table.freeze({ name = "Ten", mark = "renk_ten", r = 245, g = 196, b = 161 }),
+		table.freeze({ name = "Acik ten", mark = "renk_ten", r = 245, g = 196, b = 161 }),
 		table.freeze({ name = "Kirmizi", mark = "renk_kirmizi", r = 232, g = 57, b = 46 }),
 		table.freeze({ name = "Turuncu", mark = "renk_turuncu", r = 249, g = 115, b = 22 }),
 		table.freeze({ name = "Sari", mark = "renk_sari", r = 250, g = 204, b = 21 }),
@@ -22,10 +22,10 @@ return table.freeze({
 		table.freeze({ name = "Mavi", mark = "renk_mavi", r = 59, g = 130, b = 246 }),
 		table.freeze({ name = "Mor", mark = "renk_mor", r = 139, g = 92, b = 246 }),
 		table.freeze({ name = "Pembe", mark = "renk_pembe", r = 236, g = 72, b = 153 }),
-		table.freeze({ name = "Kahve", mark = "renk_kahve", r = 146, g = 64, b = 14 }),
-		table.freeze({ name = "Koyu yesil", mark = "renk_koyu_yesil", r = 22, g = 101, b = 52 }),
+		table.freeze({ name = "Koyu kahve", mark = "renk_koyu_kahve", r = 110, g = 68, b = 40 }),
+		table.freeze({ name = "Orta ten", mark = "renk_orta_ten", r = 198, g = 134, b = 90 }),
 		table.freeze({ name = "Lacivert", mark = "renk_lacivert", r = 30, g = 58, b = 95 }),
-		table.freeze({ name = "Bordo", mark = "renk_bordo", r = 190, g = 18, b = 60 }),
+		table.freeze({ name = "Sarisin", mark = "renk_sarisin", r = 250, g = 226, b = 140 }),
 	}),
 
 	-- Indeks = StrokeCodec'in firca boyu indeksi.
