@@ -4,8 +4,8 @@ local Countdown = {}
 
 export type View = { show: boolean, digit: number?, canDraw: boolean }
 
-function Countdown.at(payload: { countdownEndsAt: number }, now: number, seconds: number): View
-	local remaining = payload.countdownEndsAt - now
+function Countdown.at(payload: { startsAt: number }, now: number, seconds: number): View
+	local remaining = payload.startsAt - now
 	if remaining <= 0 then
 		return { show = false, digit = nil, canDraw = true }
 	elseif remaining > seconds then

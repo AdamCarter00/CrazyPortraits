@@ -12,7 +12,6 @@ Schema.Messages = table.freeze({
 			subjectUserId = "number",
 			subjectName = "string",
 			startsAt = "number",
-			countdownEndsAt = "number",
 			endsAt = "number",
 			participants = "table",
 		},

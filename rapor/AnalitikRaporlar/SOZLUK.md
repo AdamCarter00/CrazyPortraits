@@ -17,8 +17,8 @@ Kod: iş 6, 2026-11-20 (K-008, Cikis fazı + izliyor, Teslim, CizimTepki + sahib
 | TurBasladi | girişten tur başına sn | rol | kohort | ilk_oturum |
 | IlkReveal | 1 | reveal_rol | kohort | ilk_oturum |
 | TurTamam | 1 | tur_sirasi | katilim | kohort |
-| Teslim | çizimin başından (geçiş perdesi bittikten) teslime sn | nasil | cizgi | kohort |
-| CizimdeCikis | çizim başladıktan (ya da oyuncu tura girdikten) çıkışa sn | cizgi | kohort | ilk_oturum |
+| Teslim | çizimin açıldığı andan (3-2-1 sayımı bitince, T-022) teslime sn | nasil | cizgi | kohort |
+| CizimdeCikis | 3-2-1 sayımı bitip çizim açıldıktan (ya da oyuncu tura sonradan girdikten) çıkışa sn; sayım sırasında çıkan 0 | cizgi | kohort | ilk_oturum |
 | CizimTepki | tepki veren ÷ tepki verebilecek × 100 (tam sayı) | ekrandaki | sahibi_cikti | kohort |
 
 ## Değerler

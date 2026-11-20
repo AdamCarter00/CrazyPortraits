@@ -36,10 +36,6 @@ local function drawingPhase(phase: string): boolean
 	return phase == "Drawing" or phase == "Collecting"
 end
 
-local function drawStart(round): number
-	return round.countdownEndsAt or round.startsAt
-end
-
 function Metrics.new(deps: { config: any, core: any })
 	return {
 		config = deps.config,
@@ -289,7 +285,7 @@ local function onSubmit(m, action: Action, now: number)
 	local config = m.config
 	local how = if action.phase == "Drawing" then config.Alanlar.nasil.Dugme else config.Alanlar.nasil.SureDoldu
 	local strokes = bucket(config.Alanlar.cizgi, config.CizgiSinirlari, drawing.strokeCount)
-	event(m, player, "Teslim", seconds(math.max(now - drawStart(round), 0)), function(info)
+	event(m, player, "Teslim", seconds(math.max(now - round.startsAt, 0)), function(info)
 		return { nasil = how, cizgi = strokes, kohort = info.cohort }
 	end)
 end
@@ -381,7 +377,7 @@ function Metrics.observe(m, machine, now: number, action: Action?)
 			player.phase = phaseOf(config, machine, id)
 			if player.phase == config.Alanlar.faz.CizimTeslimsiz and player.drawRound ~= machine.round then
 				player.drawRound = machine.round
-				player.drawStartedAt = math.max(now, drawStart(machine.round))
+				player.drawStartedAt = math.max(now, machine.round.startsAt)
 			end
 		end
 		if not player.fiveMinutes and now - player.joinedAt >= config.BesDakikaSaniye then

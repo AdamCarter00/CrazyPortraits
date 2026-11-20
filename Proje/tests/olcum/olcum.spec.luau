@@ -840,6 +840,25 @@ describe("Olcum -- profil ve sinir durumlari", function()
 		expect(got).toEqual({ [3] = { 20, "0" }, [1] = { 4, "0" } })
 	end)
 
+	it("T-022: CizimdeCikis'te cizimde gecen sure sayim bitince baslar; sayim sirasinda cikan 0 sn", function()
+		local w = newWorld(at(DAY1, 8))
+		local s = newServer(w)
+		for id = 1, 3 do
+			join(s, id)
+		end
+		advance(w, w.now + RoundTest.LobbyCountdownSeconds + 1)
+		expect(w.now < s.machine.round.startsAt).toBe(true)
+		leave(s, 3)
+		local startsAt = s.machine.round.startsAt
+		advance(w, startsAt + 7)
+		leave(s, 2)
+		local got = {}
+		for _, item in events(w, "CizimdeCikis") do
+			got[item.user] = item.value
+		end
+		expect(got).toEqual({ [3] = 0, [2] = 7 })
+	end)
+
 	it("T-021: ilerleme bildirimi cizim fazi disinda ya da baska oyuncu icin yok sayilir", function()
 		local w = newWorld(at(DAY1, 8))
 		local s = newServer(w)
