@@ -24,6 +24,9 @@ local function allows(spec: any, value: any): boolean
 		return false
 	end
 	if spec.Bilesik then
+		if value == spec.Bilinmiyor then
+			return true
+		end
 		local parts = string.split(value, spec.Ayirac)
 		if #parts ~= #spec.Bilesik then
 			return false

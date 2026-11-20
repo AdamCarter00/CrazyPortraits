@@ -50,6 +50,9 @@ function cardinality(spec)
 		for _, part in spec.Bilesik do
 			product *= cardinality(part)
 		end
+		if spec.Bilinmiyor then
+			product += 1
+		end
 		return product
 	end
 	local count = 0
@@ -134,6 +137,8 @@ describe("Olcum cekirdegi -- sema", function()
 		expect(Core.allows(spec, range.Son .. "/etiketsiz")).toBe(true)
 		expect(Core.allows(spec, "bilinmiyor/bilinmiyor")).toBe(true)
 		expect(Core.allows(spec, "aralik_disi/etiketli")).toBe(true)
+		expect(Core.allows(spec, "bilinmiyor/etiketli")).toBe(false)
+		expect(Core.allows(spec, range.Ilk .. "/bilinmiyor")).toBe(false)
 		expect(Core.allows(spec, Day.after(range.Ilk, -1) .. "/etiketli")).toBe(false)
 		expect(Core.allows(spec, Day.after(range.Son, 1) .. "/etiketli")).toBe(false)
 		expect(Core.allows(spec, "2026-11-31/etiketli")).toBe(false)

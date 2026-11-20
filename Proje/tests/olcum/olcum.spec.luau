@@ -469,17 +469,18 @@ describe("Olcum -- test gunu akisi", function()
 		})
 	end)
 
-	it("T-021: CizimTepki her cizimin reveal'i bitince sahibine; sahibin oyu sayilmaz, notr sayilir; sahibi cikmissa gitmez", function()
+	it("T-021: CizimTepki her cizimin reveal'i bitince sahibine; sahibin oyu sayilmaz, notr sayilir; sahibi ciktiysa sunucudaki oyuncuya, sahibin kohortuyla", function()
 		local got = {}
 		for _, item in events(world, "CizimTepki") do
-			table.insert(got, { item.user, item.value, item.fields.ekrandaki })
+			table.insert(got, { item.user, item.value, item.fields.ekrandaki, item.fields.sahibi_cikti, item.fields.kohort })
 		end
 		expect(got).toEqual({
-			{ P[1], 67, "2-3" },
-			{ P[3], 33, "2-3" },
-			{ P[1], 50, "2-3" },
-			{ P[3], 0, "2-3" },
-			{ P[4], 0, "2-3" },
+			{ P[1], 67, "2-3", "hayir", D1T },
+			{ P[3], 33, "2-3", "hayir", D1E },
+			{ P[1], 50, "2-3", "hayir", D1T },
+			{ P[3], 0, "2-3", "hayir", D1E },
+			{ P[4], 0, "2-3", "hayir", D1E },
+			{ P[4], 0, "1", "evet", D1E },
 		})
 	end)
 
@@ -601,11 +602,15 @@ describe("Olcum -- T-021 Okuma tablosu (gun 1 kohortu, tekil kullanici)", functi
 		expect(countBy(list, "cizgi")).toEqual({ ["0"] = 6, ["1-10"] = 5, ["11-40"] = 1 })
 	end)
 
-	it("T-021: reveal ilgi goruyor mu = CizimTepki ortalamasi ekrandaki oyuncu kovasiyla: 2-3 kovasinda 150/5", function()
+	it("T-021: reveal ilgi goruyor mu = CizimTepki ortalamasi ekrandaki oyuncu kovasiyla: 2-3 kovasinda 150/5, 1 kovasinda 0/1", function()
 		local list = events(world, "CizimTepki", both(cohort(DAY1), field("ekrandaki", "2-3")))
 		expect(#list).toBe(5)
 		expect(mean(list)).toBeCloseTo(30)
-		expect(#events(world, "CizimTepki", field("ekrandaki", "1", "4-7"))).toBe(0)
+		local single = events(world, "CizimTepki", both(cohort(DAY1), field("ekrandaki", "1")))
+		expect(#single).toBe(1)
+		expect(mean(single)).toBe(0)
+		expect(#events(world, "CizimTepki", field("ekrandaki", "4-7"))).toBe(0)
+		expect(#events(world, "CizimTepki", both(cohort(DAY1), field("sahibi_cikti", "evet")))).toBe(1)
 	end)
 
 	it("K-008: reklam etiketli dilimi butun olaylarda kohort/kaynak alaniyla okunur", function()
@@ -774,6 +779,60 @@ describe("Olcum -- profil ve sinir durumlari", function()
 			got[item.user] = item.fields.faz
 		end
 		expect(got).toEqual({ [1] = "reveal", [2] = "podyum" })
+	end)
+
+	it("T-021: Cikis fazi izliyor -- tur surerken turda olmayan, lobiye sayilmaz", function()
+		local w = newWorld(at(DAY1, 8))
+		local s = newServer(w)
+		join(s, 1)
+		join(s, 2)
+		advance(w, w.now + RoundTest.LobbyCountdownSeconds + RoundTest.TransitionSeconds + RoundTest.DrawSeconds - RoundTest.MidJoinMinSeconds + 5)
+		join(s, 3)
+		expect(table.find(s.machine.round.participantOrder, 3)).toBeNil()
+		advance(w, w.now + 5)
+		leave(s, 3)
+		expect(events(w, "Cikis")[1].fields.faz).toBe("izliyor")
+	end)
+
+	it("T-021: CizimTepki -- sahibi kendi gosterimi sirasinda ciktiysa sunucudaki ilk gelen oyuncuya, sahibi cikti = evet", function()
+		local w = newWorld(at(DAY1, 8))
+		local s = newServer(w)
+		join(s, 1, { launch = TAG })
+		w.now += 1
+		join(s, 2)
+		join(s, 3)
+		advance(w, w.now + RoundTest.LobbyCountdownSeconds)
+		for id = 1, 3 do
+			submit(s, id, 1)
+		end
+		advance(w, w.now + RoundTest.TransitionSeconds + 1)
+		leave(s, 1)
+		vote(s, 3, "1-1", "skull")
+		advance(w, w.now + RoundTest.RevealSecondsPerDrawing)
+		local first = events(w, "CizimTepki")[1]
+		expect(first.user).toBe(2)
+		expect(first.value).toBe(50)
+		expect(first.fields).toEqual({ ekrandaki = "2-3", sahibi_cikti = "evet", kohort = D1T })
+	end)
+
+	it("T-021: CizimTepki -- sahibi cikti ve sunucuda kimse kalmadiysa gitmez", function()
+		local w = newWorld(at(DAY1, 8))
+		local s = newServer(w)
+		join(s, 1)
+		join(s, 2)
+		advance(w, w.now + RoundTest.LobbyCountdownSeconds)
+		submit(s, 1, 1)
+		submit(s, 2, 1)
+		advance(w, w.now + RoundTest.TransitionSeconds + 1)
+		leave(s, 2)
+		leave(s, 1)
+		for _ = 1, 3 * RoundTest.RevealSecondsPerDrawing do
+			w.now += 1
+			Machine.tick(s.machine, w.now)
+			observe(s)
+		end
+		expect(#events(w, "CizimTepki")).toBe(0)
+		expect(w.warnings).toEqual({})
 	end)
 
 	it("T-021: Teslim her teslimde bir kez; reddedilen ikinci gonderim ve tur disi gonderim sayilmaz", function()

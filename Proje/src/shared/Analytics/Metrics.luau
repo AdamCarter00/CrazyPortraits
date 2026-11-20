@@ -44,6 +44,7 @@ function Metrics.new(deps: { config: any, core: any })
 		completedRound = nil :: number?,
 		submits = { round = nil :: any, seen = {} },
 		shown = nil :: any,
+		departed = { round = nil :: any, cohorts = {} },
 	}
 end
 
@@ -56,12 +57,12 @@ end
 
 function Metrics.cohort(config, day: string?, source: string?): string
 	local spec = config.Alanlar.kohort
-	local days = spec.Bilesik[1]
-	local part = days.Bilinmiyor
-	if day ~= nil and Day.isDay(day) then
-		part = if day < days.Gunler.Ilk or day > days.Gunler.Son then days.AralikDisi else day
+	if day == nil or source == nil or not Day.isDay(day) then
+		return spec.Bilinmiyor
 	end
-	return part .. spec.Ayirac .. (source or config.Kaynak.Bilinmiyor)
+	local days = spec.Bilesik[1]
+	local part = if day < days.Gunler.Ilk or day > days.Gunler.Son then days.AralikDisi else day
+	return part .. spec.Ayirac .. source
 end
 
 local function describeProfile(config, status: string, record: Record?)
@@ -207,6 +208,7 @@ function Metrics.leave(m, id: number, now: number)
 		oturum_tipi = sessionType(config, info, duration),
 		faz = player.phase,
 	})
+	m.departed.cohorts[id] = info.cohort
 	m.players[id] = nil
 end
 
@@ -218,7 +220,10 @@ local function phaseOf(config, machine, id: number): string
 		return values.Reveal
 	elseif phase == "Podium" then
 		return values.Podyum
-	elseif drawingPhase(phase) and isParticipant(round, id) then
+	elseif drawingPhase(phase) and round then
+		if not isParticipant(round, id) then
+			return values.Izliyor
+		end
 		return if round.awaiting[id] then values.CizimTeslimsiz else values.TeslimSonrasi
 	end
 	return values.Lobi
@@ -274,13 +279,19 @@ local function onSubmit(m, action: Action, now: number)
 	end)
 end
 
+local function representative(m)
+	local chosen = nil
+	for _, player in m.players do
+		if chosen == nil or player.joinedAt < chosen.joinedAt or (player.joinedAt == chosen.joinedAt and player.id < chosen.id) then
+			chosen = player
+		end
+	end
+	return chosen
+end
+
 local function finishShown(m)
 	local shown = m.shown
 	m.shown = nil
-	local owner = m.players[shown.entry.ownerId]
-	if not owner then
-		return
-	end
 	local eligible, reacted = 0, 0
 	local votes = shown.round.votes[shown.entry.drawingId] or {}
 	for id in shown.viewers do
@@ -294,9 +305,23 @@ local function finishShown(m)
 	end
 	local config = m.config
 	local screen = bucket(config.Alanlar.ekrandaki, config.EkrandakiSinirlari, eligible)
-	event(m, owner, "CizimTepki", seconds(100 * reacted / eligible), function(info)
-		return { ekrandaki = screen, kohort = info.cohort }
-	end)
+	local value = seconds(100 * reacted / eligible)
+	local left = config.Alanlar.sahibi_cikti
+	local owner = m.players[shown.entry.ownerId]
+	if owner then
+		event(m, owner, "CizimTepki", value, function(info)
+			return { ekrandaki = screen, sahibi_cikti = left.Hayir, kohort = info.cohort }
+		end)
+		return
+	end
+	local stand = representative(m)
+	if stand then
+		m.core:log(stand.id, "CizimTepki", value, {
+			ekrandaki = screen,
+			sahibi_cikti = left.Evet,
+			kohort = m.departed.cohorts[shown.entry.ownerId] or config.Alanlar.kohort.Bilinmiyor,
+		})
+	end
 end
 
 local function trackReveal(m, machine)
@@ -325,6 +350,9 @@ function Metrics.observe(m, machine, now: number, action: Action?)
 	local config = m.config
 	if action and action.kind == "submit" then
 		onSubmit(m, action, now)
+	end
+	if m.departed.round ~= machine.round then
+		m.departed = { round = machine.round, cohorts = {} }
 	end
 	trackReveal(m, machine)
 
