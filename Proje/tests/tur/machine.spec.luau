@@ -270,6 +270,12 @@ describe("Tur -- gosterim ve oy", function()
 end)
 
 describe("Tur -- istemciye giden veri", function()
+	it("T-001: tura tema verilmez", function()
+		local state = startedRound(2)
+		expect(Schema.Messages.Drawing.fields.theme).toBeNil()
+		expect(state.round.theme).toBeNil()
+	end)
+
 	it("is-1: makinenin urettigi her mesaj beyaz listeden gecer", function()
 		local all = {}
 		local function keep(effects)
