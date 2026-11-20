@@ -4,6 +4,10 @@
 return table.freeze({
 	GameName = "Crazy Portraits",
 
+	TimerText = "Time Left: %d",
+	DrawSelf = "Draw yourself",
+	DrawOther = "Draw %s",
+
 	BanTimed = "You are suspended for %d more hour(s).",
 	BanPermanent = "You are permanently suspended.",
 	DataLoadFailed = "Data could not be loaded, please rejoin.",

@@ -25,7 +25,7 @@ Saf durum makinesi + zamanlayıcı + yan etki katmanı; Lune testleriyle.
 - Çizimde yalnız oyunun kendi GUI'leri gizlenir; Roblox `TouchGui` ellenmez.
 - **Neden:** mobil oyuncu ilk turdan sonra lobide yürüyemiyor; trafiğin çoğu mobil. İş küçük.
 
-## 3 · Çizim verisinin güvenliği (Gün 2)
+## 3 · Çizim verisinin güvenliği (Gün 2) — KOD HAZIR 2026-11-20 (Session, Pointer, CanvasView, DrawingScreen; Studio oynanışı ve telefonda doğrulama bekliyor)
 - Geri alma geçmişi ile gönderilen çizgi listesi ayrılır; 80 çizgiden sonra baş silinmez (5).
 - Çizim Submit anında gönderilir; Submit edip çıkanın çizimi kaybolmaz (6).
 - Silgi ayrı durum; fırça boyu seçince beyaz çizmeye devam etmez (19).

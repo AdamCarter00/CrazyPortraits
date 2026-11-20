@@ -83,3 +83,17 @@ describe("Para", function()
 		end
 	end)
 end)
+
+describe("Mimari -- kaynak saglik", function()
+	it("kodda satir basinda tek eksi ile baslayan ifade (bozuk yorum) yok", function()
+		local offenders = {}
+		for _, entry in SourceIndex do
+			for line in string.gmatch(stripComments(entry.source) .. "\n", "([^\n]*)\n") do
+				if string.match(line, "^%s*%-[^%-]") then
+					table.insert(offenders, entry.fsPath .. ": " .. line)
+				end
+			end
+		end
+		expect(offenders).toEqual({})
+	end)
+end)
