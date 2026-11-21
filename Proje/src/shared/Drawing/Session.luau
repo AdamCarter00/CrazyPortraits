@@ -78,6 +78,15 @@ function Session:selectFill()
 	self.tool = "fill"
 end
 
+function Session:selectedMarks(): { [string]: boolean }
+	if self.tool == "eraser" then
+		return { arac_silgi = true }
+	elseif self.tool == "fill" then
+		return { arac_kova = true }
+	end
+	return { [Drawing.Colors[self.colorIndex].mark] = true, [Drawing.BrushMarks[self.sizeIndex]] = true }
+end
+
 function Session:canStartStroke(): boolean
 	return self.enabled
 		and #self.strokes < Drawing.MaxStrokes

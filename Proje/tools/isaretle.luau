@@ -4,6 +4,7 @@
 local APPLY = false
 local WORLD = true
 local CLEAR_OLD = true
+local ONLY_GROUP = nil -- ör. "cizim": yalniz bu grubun isaretlerini rapor eder ve yazar
 
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local Shared = ReplicatedStorage.Shared
@@ -12,7 +13,28 @@ local Marker = require(Shared.Binding.Marker)
 local Binder = require(game:GetService("StarterPlayer").StarterPlayerScripts.Client.Binder)
 
 local function run(label, root, expected)
-	local plan = Marker.plan(root, expected, Binding.MarkerAttribute, Binding.SelectedMark)
+	if ONLY_GROUP then
+		local kept = {}
+		for _, entry in expected do
+			if entry.group == ONLY_GROUP then
+				table.insert(kept, entry)
+			end
+		end
+		expected = kept
+	end
+	local plan = Marker.plan(root, expected, Binding.MarkerAttribute, Binding.SelectedMark, Binding.SelectedTick)
+	if ONLY_GROUP then
+		local own, kept = {}, {}
+		for _, entry in expected do
+			own[entry.mark] = true
+		end
+		for _, item in plan.clear do
+			if own[item.old] then
+				table.insert(kept, item)
+			end
+		end
+		plan.clear = kept
+	end
 	local lines = { `[{label}]` }
 	for _, line in Marker.report(plan, expected) do
 		table.insert(lines, line)

@@ -4,6 +4,7 @@ local Binder = require(Client.Binder)
 local Binding = require(Shared.Config.Binding)
 local Marker = require(Shared.Binding.Marker)
 local Round = require(Shared.Config.Round)
+local Drawing = require(Shared.Config.Drawing)
 
 local FAMILIES = {
 	GuiButton = { TextButton = true, ImageButton = true },
@@ -55,6 +56,9 @@ local function treeFor(expected, skip)
 			if entry.selectable then
 				table.insert(inner, node(Binding.SelectedMark, "UIStroke"))
 			end
+			if entry.tick then
+				table.insert(inner, node(Binding.SelectedTick, "ImageLabel"))
+			end
 			table.insert(children, node(entry.mark, concreteClass(entry), inner))
 		end
 	end
@@ -71,7 +75,7 @@ local function apply(plan)
 end
 
 local function plan(root, expected)
-	return Marker.plan(root, expected, Binding.MarkerAttribute, Binding.SelectedMark)
+	return Marker.plan(root, expected, Binding.MarkerAttribute, Binding.SelectedMark, Binding.SelectedTick)
 end
 
 describe("Baglama -- kapsam", function()
@@ -205,6 +209,37 @@ describe("Baglama -- Marker.plan", function()
 		expect(kinds.arac_kova).toBe("secili_hatali")
 		expect(kinds.renk_siyah).toBe("uyari:secili_acik")
 		expect(kinds.arac_geri).toBeNil()
+	end)
+
+	it("T-028: tick yalniz renklerde; eksik ya da yanlis sinif tick bildirilir, dogrusu isaretlenir", function()
+		local expected = Binder.expected()
+		for _, entry in expected do
+			expect(entry.tick == true).toBe(string.sub(entry.mark, 1, 5) == "renk_")
+		end
+		local root = treeFor(expected)
+		for _, child in root.Children do
+			if child.Name == "renk_beyaz" then
+				child.Children = { child.Children[1] }
+			elseif child.Name == "renk_gri" then
+				child.Children[2].ClassName = "Frame"
+			end
+		end
+		local result = plan(root, expected)
+		local kinds = {}
+		for _, problem in result.problems do
+			kinds[problem.mark] = problem.kind
+		end
+		expect(kinds.renk_beyaz).toBe("tik_eksik")
+		expect(kinds.renk_gri).toBe("tik_hatali")
+		local tickAssigned = 0
+		for _, item in result.assign do
+			if item.mark == Binding.SelectedTick then
+				tickAssigned += 1
+			end
+		end
+		expect(tickAssigned).toBe(#Drawing.Colors - 2)
+		apply(result)
+		expect(#plan(root, expected).clear).toBe(0)
 	end)
 
 	it("is-V0: adi degisen nesnenin eski isareti temizlenecekler arasinda cikar", function()

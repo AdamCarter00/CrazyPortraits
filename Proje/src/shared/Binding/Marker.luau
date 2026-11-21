@@ -3,15 +3,28 @@
 -- Nesne adi = isaret. Yalniz plan uretir; attribute yazmak tools/isaretle.luau'nun isi.
 local Marker = {}
 
-export type Entry = { mark: string, class: string, selectable: boolean?, group: string? }
+export type Entry = { mark: string, class: string, selectable: boolean?, tick: boolean?, group: string? }
 
 local function pathOf(inst: any): string
 	return inst:GetFullName()
 end
 
-function Marker.plan(root: any, expected: { Entry }, attribute: string, selectedMark: string)
+local function childrenNamed(parent: any, name: string): { any }
+	local list = {}
+	for _, child in parent:GetChildren() do
+		if child.Name == name then
+			table.insert(list, child)
+		end
+	end
+	return list
+end
+
+function Marker.plan(root: any, expected: { Entry }, attribute: string, selectedMark: string, tickMark: string?)
 	local byName: { [string]: { any } } = {}
 	local expectedSet: { [string]: boolean } = { [selectedMark] = true }
+	if tickMark then
+		expectedSet[tickMark] = true
+	end
 	for _, entry in expected do
 		expectedSet[entry.mark] = true
 	end
@@ -58,13 +71,23 @@ function Marker.plan(root: any, expected: { Entry }, attribute: string, selected
 			})
 		else
 			claim(list[1], entry.mark)
-			if entry.selectable then
-				local strokes = {}
-				for _, child in list[1]:GetChildren() do
-					if child.Name == selectedMark then
-						table.insert(strokes, child)
-					end
+			if entry.tick and tickMark then
+				local ticks = childrenNamed(list[1], tickMark)
+				if #ticks == 0 then
+					table.insert(problems, { kind = "tik_eksik", mark = entry.mark, group = entry.group })
+				elseif #ticks > 1 or not ticks[1]:IsA("ImageLabel") then
+					table.insert(problems, {
+						kind = "tik_hatali",
+						mark = entry.mark,
+						group = entry.group,
+						detail = `{#ticks} nesne, ilki {ticks[1].ClassName}`,
+					})
+				else
+					claim(ticks[1], tickMark)
 				end
+			end
+			if entry.selectable then
+				local strokes = childrenNamed(list[1], selectedMark)
 				if #strokes == 0 then
 					table.insert(problems, { kind = "secili_eksik", mark = entry.mark, group = entry.group })
 				elseif #strokes > 1 or not strokes[1]:IsA("UIStroke") then

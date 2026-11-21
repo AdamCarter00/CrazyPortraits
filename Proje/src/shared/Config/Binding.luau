@@ -5,6 +5,7 @@
 return table.freeze({
 	MarkerAttribute = "Isaret",
 	SelectedMark = "secili",
+	SelectedTick = "secili_tik",
 	GuiWaitSeconds = 10,
 
 	Marks = table.freeze({

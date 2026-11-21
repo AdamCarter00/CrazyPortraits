@@ -17,10 +17,10 @@ require(Client:WaitForChild("AdminClient")).start()
 local player = Players.LocalPlayer
 local playerGui = player:WaitForChild("PlayerGui")
 
-local refs, selected = Binder.bind(playerGui, Binder.expected(), Binding.GuiWaitSeconds)
+local refs, selected, ticks = Binder.bind(playerGui, Binder.expected(), Binding.GuiWaitSeconds)
 local loading = LoadingScreen.new(refs)
 local visibility = GuiVisibility.new(playerGui)
-local drawing = DrawingScreen.new(refs, selected, visibility)
+local drawing = DrawingScreen.new(refs, selected, ticks, visibility)
 local phase = PhaseView.new(refs)
 
 local function secondsLeft(endsAt)

@@ -15,10 +15,19 @@ local CanvasView = require(script.Parent.CanvasView)
 local DrawingScreen = {}
 DrawingScreen.__index = DrawingScreen
 
-function DrawingScreen.new(refs, selected, visibility)
+local SELECTABLE = { "arac_silgi", "arac_kova" }
+for _, color in Drawing.Colors do
+	table.insert(SELECTABLE, color.mark)
+end
+for _, mark in Drawing.BrushMarks do
+	table.insert(SELECTABLE, mark)
+end
+
+function DrawingScreen.new(refs, selected, ticks, visibility)
 	local self = setmetatable({}, DrawingScreen)
 	self.refs = refs
 	self.selected = selected
+	self.ticks = ticks
 	self.visibility = visibility
 	self.view = CanvasView.new(refs.cizim_tuval)
 	self.session = Session.new()
@@ -26,28 +35,24 @@ function DrawingScreen.new(refs, selected, visibility)
 	self.roundId = nil
 	self.submitted = false
 	self.token = 0
+	for _, color in Drawing.Colors do
+		ticks[color.mark].Image = Drawing.TickImage
+	end
+	refs.cizim_ekran.Enabled = false
+	refs.cizim_sayim_kutu.Visible = false
 	self:_bindButtons()
 	self:_bindInput()
+	self:_selectTool()
 	return self
 end
 
-function DrawingScreen:_select(mark)
-	for key, stroke in self.selected do
-		stroke.Enabled = key == mark
-	end
-end
-
 function DrawingScreen:_selectTool()
-	local session = self.session
-	if session.tool == "eraser" then
-		self:_select("arac_silgi")
-	elseif session.tool == "fill" then
-		self:_select("arac_kova")
-	else
-		self:_select(Drawing.Colors[session.colorIndex].mark)
-		for index, mark in Drawing.BrushMarks do
-			self.selected[mark].Enabled = index == session.sizeIndex
-		end
+	local active = self.session:selectedMarks()
+	for _, mark in SELECTABLE do
+		self.selected[mark].Enabled = active[mark] == true
+	end
+	for _, color in Drawing.Colors do
+		self.ticks[color.mark].Visible = active[color.mark] == true
 	end
 end
 

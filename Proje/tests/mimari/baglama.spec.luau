@@ -26,9 +26,12 @@ local function worldFor(expected, overrides)
 	local instances = {}
 	for _, entry in expected do
 		local className = if entry.class == "GuiButton" then "TextButton" else entry.class
-		local children = nil
+		local children = {}
 		if entry.selectable then
-			children = { fakeInstance("UIStroke", Binding.SelectedMark) }
+			table.insert(children, fakeInstance("UIStroke", Binding.SelectedMark))
+		end
+		if entry.tick then
+			table.insert(children, fakeInstance("ImageLabel", Binding.SelectedTick))
 		end
 		if not (overrides and overrides[entry.mark] == "yok") then
 			table.insert(instances, fakeInstance(overrides and overrides[entry.mark] or className, entry.mark, children))
@@ -44,9 +47,28 @@ end
 describe("Arayuz -- Binder", function()
 	it("is-3: tam isaretli arayuz baglanir", function()
 		local expected = Binder.expected()
-		local bound, selected = Binder.collect(worldFor(expected), expected, function() end)
+		local bound, selected, ticks = Binder.collect(worldFor(expected), expected, function() end)
 		expect(bound.cizim_tuval).toBeTruthy()
 		expect(selected.renk_siyah).toBeTruthy()
+		expect(ticks.renk_siyah).toBeTruthy()
+		expect(ticks.firca_1).toBeNil()
+		expect(ticks.arac_kova).toBeNil()
+	end)
+
+	it("T-028: renk dugmesinde tick yoksa baglama hata verir", function()
+		local expected = Binder.expected()
+		local world = worldFor(expected)
+		for _, inst in world:GetDescendants() do
+			if inst:GetAttribute("Isaret") == "renk_mavi" then
+				local strokeOnly = { inst:GetChildren()[1] }
+				inst.GetChildren = function()
+					return strokeOnly
+				end
+			end
+		end
+		expect(function()
+			Binder.collect(world, expected, function() end)
+		end).toThrow("1 baglama sorunu")
 	end)
 
 	it("is-3: tryCollect sorunlari firlatmadan listeler; PlayerGui bos ise hepsi eksik gorunur", function()
@@ -79,8 +101,10 @@ describe("Arayuz -- Binder", function()
 				table.insert(missing, entry.mark)
 			end
 		end
-		if not string.find(doc, "`" .. Binding.SelectedMark .. "`", 1, true) then
-			table.insert(missing, Binding.SelectedMark)
+		for _, mark in { Binding.SelectedMark, Binding.SelectedTick } do
+			if not string.find(doc, "`" .. mark .. "`", 1, true) then
+				table.insert(missing, mark)
+			end
 		end
 		expect(missing).toEqual({})
 	end)

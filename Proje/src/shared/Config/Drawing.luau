@@ -34,6 +34,8 @@ return table.freeze({
 	BrushSizes = table.freeze({ 0.01, 0.04, 0.08 }),
 	BrushMarks = table.freeze({ "firca_1", "firca_2", "firca_3" }),
 
+	TickImage = "rbxassetid://107330784461633",
+
 	DefaultColorIndex = 1,
 	DefaultBrushIndex = 1,
 })

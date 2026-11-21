@@ -8,7 +8,11 @@ karşılaştırır: kodda olup burada olmayan da, burada olup kodda olmayan da h
 **Nesnenin adı işaretle aynı olursa komut işareti kendisi atar** (aşağıda "İşaretleme komutu").
 
 Seçilebilir düğmelerin (Not sütununda "seçilebilir") altında adı ve işareti `secili` olan, kapalı bir `UIStroke`
-bulunur. Kod yalnız onun `Enabled`'ını açıp kapatır; renk ve kalınlık Adam'ın.
+bulunur. Kod yalnız onun `Enabled`'ını açıp kapatır; renk ve kalınlık Adam'ın. Düğmenin her zaman açık duran
+kendi kenar `UIStroke`'u ayrıdır ve işaretsizdir; `secili` onun üstünde çizilsin diye `ZIndex`'i daha büyüktür.
+
+Renk düğmelerinin altında ayrıca adı ve işareti `secili_tik` olan bir `ImageLabel` bulunur (T-028). Kod yalnız
+`Visible`'ını yazar ve görselini `Config.Drawing.TickImage`'tan atar.
 
 Her ScreenGui kendi işaretini taşır. Çizim sırasında işaretli ScreenGui'ler gizlenir (çizim ve geçiş hariç);
 işaretsiz olanlar ve Roblox'un `TouchGui`'si ellenmez. Her ScreenGui `ResetOnSpawn = false` olmalı.
@@ -115,6 +119,7 @@ Rapor grup grup `tamam/toplam` yazar, ardından sorunları listeler:
 - `sinif`: nesne var ama sınıfı yanlış.
 - `secili_eksik` / `secili_hatali`: düğmenin altında `secili` adlı tek bir `UIStroke` yok.
 - `uyari: secili_acik`: `secili` kapalı olmalı; komut `Enabled`'a dokunmaz.
+- `tik_eksik` / `tik_hatali`: renk düğmesinin altında `secili_tik` adlı tek bir `ImageLabel` yok.
 - `eski isaret`: `Isaret` taşıyan ama adı eşleşmeyen nesne (yeniden adlandırılmış ya da kopyalanmış). `APPLY = true`
   iken bu nesnelerin `Isaret`'i silinir; yoksa çalışma anında "cift" hatası verirdi.
 
