@@ -32,7 +32,7 @@ Kod nesne yaratmaz, yalnız içerik, görünürlük ve davranış yazar. "Kod ya
 | `cizim_sayim` | TextLabel | 3-2-1 sayısı (T-022); `cizim_sayim_kutu`'nun içinde | 3 |
 | `cizim_sayim_yazi` | TextLabel | "Draw [model adı]" (modelin kendisine "Draw yourself"), `Config.Terms` (T-022); `cizim_sayim_kutu`'nun içinde | 3 |
 | `firca_1` `firca_2` `firca_3` | GuiButton | Fırça boyları, `Config.Drawing.BrushSizes` sırasıyla, seçilebilir | 3 |
-| `renk_siyah` `renk_beyaz` `renk_gri` `renk_ten` `renk_kirmizi` `renk_turuncu` `renk_sari` `renk_yesil` `renk_turkuaz` `renk_mavi` `renk_mor` `renk_pembe` `renk_koyu_kahve` `renk_orta_ten` `renk_lacivert` `renk_sarisin` | GuiButton | Palet (T-023); `renk_ten` açık ten; renk değeri `Config.Drawing.Colors`'tan, seçilebilir; ekrandaki sıra yerleşimden gelir | 3 |
+| `renk_siyah` `renk_beyaz` `renk_gri` `renk_ten` `renk_kirmizi` `renk_turuncu` `renk_sari` `renk_yesil` `renk_turkuaz` `renk_mavi` `renk_mor` `renk_pembe` `renk_koyu_kahve` `renk_orta_ten` `renk_lacivert` `renk_sarisin` `renk_acik_mavi` `renk_koyu_yesil` | GuiButton | Palet (T-023); `renk_ten` açık ten; renk değeri `Config.Drawing.Colors`'tan, seçilebilir; ekrandaki sıra yerleşimden gelir | 3 |
 
 ## Faz göstergesi ve geçiş perdesi
 

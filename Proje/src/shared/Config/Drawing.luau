@@ -8,7 +8,7 @@ return table.freeze({
 	MaxUndoSteps = 80,
 	RenderDabYieldBudget = 200000,
 
-	-- Sira = StrokeCodec'in renk indeksi (0-15); degisirse istemci ve sunucu birlikte degisir.
+	-- Sira = StrokeCodec'in renk indeksi; kayitli cizimler bu indeksi tasir: yeni renk yalniz sona eklenir.
 	Colors = table.freeze({
 		table.freeze({ name = "Siyah", mark = "renk_siyah", r = 26, g = 26, b = 26 }),
 		table.freeze({ name = "Beyaz", mark = "renk_beyaz", r = 255, g = 255, b = 255 }),
@@ -26,6 +26,8 @@ return table.freeze({
 		table.freeze({ name = "Orta ten", mark = "renk_orta_ten", r = 198, g = 134, b = 90 }),
 		table.freeze({ name = "Lacivert", mark = "renk_lacivert", r = 30, g = 58, b = 95 }),
 		table.freeze({ name = "Sarisin", mark = "renk_sarisin", r = 250, g = 226, b = 140 }),
+		table.freeze({ name = "Acik mavi", mark = "renk_acik_mavi", r = 125, g = 211, b = 252 }),
+		table.freeze({ name = "Koyu yesil", mark = "renk_koyu_yesil", r = 21, g = 128, b = 61 }),
 	}),
 
 	-- Indeks = StrokeCodec'in firca boyu indeksi.

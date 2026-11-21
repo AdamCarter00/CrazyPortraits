@@ -4,7 +4,7 @@ local StrokeCodec = {}
 Wire format (binary buffer):
   Per stroke header — 5 bytes:
     [0]   uint8  size index  (0 = 0.01, 1 = 0.04, 2 = 0.08)
-    [1]   uint8  color index (0-15, VALID_COLORS order)
+    [1]   uint8  color index (0-based, Drawing.Colors order)
     [2]   uint8  flags       (bit 0 = isFill)
     [3-4] uint16 pixel count (little-endian)
   Per pixel — 4 bytes:
