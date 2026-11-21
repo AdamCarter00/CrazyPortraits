@@ -81,10 +81,14 @@ end
 function Session:selectedMarks(): { [string]: boolean }
 	if self.tool == "eraser" then
 		return { arac_silgi = true }
-	elseif self.tool == "fill" then
-		return { arac_kova = true }
 	end
-	return { [Drawing.Colors[self.colorIndex].mark] = true, [Drawing.BrushMarks[self.sizeIndex]] = true }
+	local marks = { [Drawing.Colors[self.colorIndex].mark] = true }
+	if self.tool == "fill" then
+		marks.arac_kova = true
+	else
+		marks[Drawing.BrushMarks[self.sizeIndex]] = true
+	end
+	return marks
 end
 
 function Session:canStartStroke(): boolean
