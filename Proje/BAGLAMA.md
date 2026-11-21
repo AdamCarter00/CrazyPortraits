@@ -28,7 +28,7 @@ Kod nesne yaratmaz, yalnız içerik, görünürlük ve davranış yazar. "Kod ya
 | `cizim_tuval` | ImageLabel | Çizimin yapıldığı yüzey; kare olmalı (kod EditableImage bağlar) | 3 |
 | `cizim_sure` | TextLabel | Kalan süre | 3 |
 | `cizim_baslik` | TextLabel | "Draw …" satırı (tema yok, T-001) | 3 |
-| `cizim_gonder` | GuiButton | Submit; en az 44 pt (T-015) | 3 |
+| `cizim_gonder` | GuiButton | Submit; en az 36 pt (T-015) | 3 |
 | `arac_silgi` | GuiButton | Silgi, seçilebilir | 3 |
 | `arac_kova` | GuiButton | Kova doldurma, seçilebilir | 3 |
 | `arac_geri` | GuiButton | Geri al | 3 |

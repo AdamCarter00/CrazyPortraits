@@ -1,4 +1,5 @@
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local StarterGui = game:GetService("StarterGui")
 local UserInputService = game:GetService("UserInputService")
 
 local Shared = ReplicatedStorage:WaitForChild("Shared")
@@ -180,6 +181,10 @@ function DrawingScreen:open(payload, localName)
 	refs.cizim_sayim_kutu.Visible = false
 
 	self.visibility:HideExcept({ refs.cizim_ekran, refs.gecis_ekran })
+	if self.healthWas == nil then
+		self.healthWas = StarterGui:GetCoreGuiEnabled(Enum.CoreGuiType.Health)
+		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, false)
+	end
 	refs.cizim_ekran.Enabled = true
 
 	local sentStrokes, sentAt = 0, -math.huge
@@ -226,6 +231,10 @@ end
 function DrawingScreen:_hide()
 	self.refs.cizim_ekran.Enabled = false
 	self.visibility:Restore()
+	if self.healthWas ~= nil then
+		StarterGui:SetCoreGuiEnabled(Enum.CoreGuiType.Health, self.healthWas)
+		self.healthWas = nil
+	end
 end
 
 function DrawingScreen:collect()

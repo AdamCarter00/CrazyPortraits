@@ -59,7 +59,9 @@ end
 function Session:selectColor(index: number)
 	if Drawing.Colors[index] then
 		self.colorIndex = index
-		self.tool = "brush"
+		if self.tool ~= "fill" then
+			self.tool = "brush"
+		end
 	end
 end
 
