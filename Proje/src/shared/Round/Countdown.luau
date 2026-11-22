@@ -18,7 +18,7 @@ function Countdown.title(payload: { subjectUserId: number, subjectName: string }
 	if payload.subjectUserId == localUserId then
 		return terms.DrawSelf
 	end
-	return string.format(terms.DrawOther, payload.subjectName)
+	return string.upper(string.format(terms.DrawOther, payload.subjectName))
 end
 
 return Countdown

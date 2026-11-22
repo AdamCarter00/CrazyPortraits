@@ -13,8 +13,8 @@ return table.freeze({
 	RevealCount = "%d / %d",
 	PhaseClean = "Round over",
 	TimerText = "Time Left: %d",
-	DrawSelf = "Draw yourself",
-	DrawOther = "Draw %s",
+	DrawSelf = "DRAW YOURSELF",
+	DrawOther = "DRAW %s",
 	CountdownDigit = "%d",
 
 	Loading = "Loading...",

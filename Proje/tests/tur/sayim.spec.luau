@@ -49,9 +49,13 @@ describe("T-022 -- cizim basi sayimi", function()
 
 	it("T-022: yazi yalniz modelin adini soyler; model kendisi icin Draw yourself; metin Terms'te", function()
 		local payload = { subjectUserId = 5, subjectName = "Ayse" }
-		expect(Countdown.title(payload, 6, Terms)).toBe(string.format(Terms.DrawOther, "Ayse"))
+		expect(Countdown.title(payload, 6, Terms)).toBe(string.format(Terms.DrawOther, "AYSE"))
 		expect(Countdown.title(payload, 5, Terms)).toBe(Terms.DrawSelf)
 		expect(string.find(string.lower(Terms.DrawOther), "theme")).toBeNil()
+		expect(Terms.DrawSelf).toBe(string.upper(Terms.DrawSelf))
+		expect(Terms.DrawOther).toBe("DRAW %s")
+		expect(Countdown.title(payload, 6, Terms)).toBe("DRAW AYSE")
+		expect(Countdown.title({ subjectUserId = 5, subjectName = "ahmet" }, 6, Terms)).toBe("DRAW AHMET")
 		expect(string.format(Terms.CountdownDigit, 3)).toBe("3")
 	end)
 
